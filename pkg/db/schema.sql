@@ -1,8 +1,18 @@
 CREATE TABLE IF NOT EXISTS entry (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
+    name TEXT NOT NULL,
+    image TEXT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS source (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    type TEXT NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
 
 CREATE TABLE IF NOT EXISTS tag (
@@ -16,4 +26,49 @@ CREATE TABLE IF NOT EXISTS entry_tag (
     tag_id INTEGER NOT NULL,
     FOREIGN KEY (entry_id) REFERENCES entry (id),
     FOREIGN KEY (tag_id) REFERENCES tag (id)
+);
+
+CREATE TABLE IF NOT EXISTS bwh (
+    entry_id INTEGER PRIMARY KEY,
+    bust INTEGER,
+    waist INTEGER,
+    hip INTEGER,
+    height INTEGER,
+    weight INTEGER,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
+CREATE TABLE IF NOT EXISTS hairlength (
+    entry_id INTEGER PRIMARY KEY,
+    length TEXT,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
+CREATE TABLE IF NOT EXISTS haircolor (
+    entry_id INTEGER PRIMARY KEY,
+    color TEXT,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
+CREATE TABLE IF NOT EXISTS hairstyle (
+    entry_id INTEGER PRIMARY KEY,
+    style TEXT,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
+CREATE TABLE IF NOT EXISTS personality (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
+CREATE TABLE IF NOT EXISTS link (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    url TEXT NOT NULL,
+    nsfw BOOLEAN NOT NULL DEFAULT FALSE,
+    darkness BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
