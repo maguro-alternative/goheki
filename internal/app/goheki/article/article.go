@@ -1,7 +1,7 @@
 package article
 
 import (
-	//"github.com/maguro-alternative/goheki/internal/app/goheki/utility"
+	//"github.com/maguro-alternative/goheki/pkg/db"
 	"html/template"
 	//"log"
 	"net/http"
