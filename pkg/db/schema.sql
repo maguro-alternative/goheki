@@ -28,6 +28,13 @@ CREATE TABLE IF NOT EXISTS entry_tag (
     FOREIGN KEY (tag_id) REFERENCES tag (id)
 );
 
+CREATE TABLE IF NOT EXISTS heki_radar_chart (
+    entry_id INTEGER PRIMARY KEY,
+    ai INTEGER DEFAULT 0,
+    nu INTEGER DEFAULT 0,
+    FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+
 CREATE TABLE IF NOT EXISTS bwh (
     entry_id INTEGER PRIMARY KEY,
     bust INTEGER,
