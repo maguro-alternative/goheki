@@ -7,11 +7,14 @@ require (
 	github.com/cockroachdb/errors v1.11.1
 )
 
+require github.com/gorilla/securecookie v1.1.2 // indirect
+
 require (
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/getsentry/sentry-go v0.18.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/gorilla/sessions v1.2.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
