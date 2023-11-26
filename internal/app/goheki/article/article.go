@@ -5,11 +5,9 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/model"
 
-	"html/template"
 	"log"
 	"encoding/json"
 	"net/http"
-	"strings"
 )
 
 type Article struct {
@@ -18,25 +16,35 @@ type Article struct {
 	Body  string
 }
 
-var tmpl *template.Template
-
-func init() {
-	funcMap := template.FuncMap{
-		"nl2br": func(text string) template.HTML {
-			return template.HTML(strings.Replace(template.HTMLEscapeString(text), "\n", "<br />", -1))
-		},
-	}
-
-	tmpl, _ = template.New("article").Funcs(funcMap).ParseGlob("web/template/*")
+type IndexHandler struct {
+	svc *service.IndexService
 }
 
-type IndexHandler struct {
+type ShowHandler struct {
+	svc *service.IndexService
+}
+
+type CreateHandler struct {
+	svc *service.IndexService
+}
+
+type EditHandler struct {
+	svc *service.IndexService
+}
+
+type DeleteHandler struct {
 	svc *service.IndexService
 }
 
 // NewTODOHandler returns TODOHandler based http.Handler.
 func NewIndexHandler(svc *service.IndexService) *IndexHandler {
 	return &IndexHandler{
+		svc: svc,
+	}
+}
+
+func NewShowHandler(svc *service.IndexService) *ShowHandler {
+	return &ShowHandler{
 		svc: svc,
 	}
 }
@@ -50,7 +58,7 @@ func (h *IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Show(w http.ResponseWriter, r *http.Request) {
+func (h *ShowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
