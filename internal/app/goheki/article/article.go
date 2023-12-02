@@ -1,7 +1,7 @@
 package article
 
 import (
-	//"github.com/maguro-alternative/goheki/pkg/db"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/utility"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/model"
 
@@ -49,6 +49,12 @@ func NewShowHandler(svc *service.IndexService) *ShowHandler {
 	}
 }
 
+func NewCreateHandler(svc *service.IndexService) *CreateHandler {
+	return &CreateHandler{
+		svc: svc,
+	}
+}
+
 func (h *IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(&model.IndexResponse{
 		Message: "OK",
@@ -59,10 +65,14 @@ func (h *IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ShowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	db := utility.NewSqlDB(h.svc.DB)
+	db.DBHandler.ExecContext(r.Context(), "SELECT * FROM articles")
 
 }
 
-func Create(w http.ResponseWriter, r *http.Request) {
+func (h *CreateHandler) Create(w http.ResponseWriter, r *http.Request) {
+	db := utility.NewSqlDB(h.svc.DB)
+	db.DBHandler.ExecContext(r.Context(), "INSERT INTO articles (title, body) VALUES (?, ?)", "title", "body")
 
 }
 
