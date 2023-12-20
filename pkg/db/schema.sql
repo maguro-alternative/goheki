@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS heki_radar_chart (
     nu INTEGER DEFAULT 0,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-/*スリーサイズ*/
+/*スリーサイズ 身長体重含む*/
 CREATE TABLE IF NOT EXISTS bwh (
     entry_id INTEGER PRIMARY KEY,
     bust INTEGER,
