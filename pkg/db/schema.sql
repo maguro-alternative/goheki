@@ -5,7 +5,11 @@ CREATE TABLE IF NOT EXISTS entry (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+/*
+出典
 
+type 2次元 3次元
+*/
 CREATE TABLE IF NOT EXISTS source (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entry_id INTEGER NOT NULL,
@@ -14,12 +18,16 @@ CREATE TABLE IF NOT EXISTS source (
     type TEXT NOT NULL,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*
+タグの内容
+*/
 CREATE TABLE IF NOT EXISTS tag (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL
 );
-
+/*
+タグを付ける
+*/
 CREATE TABLE IF NOT EXISTS entry_tag (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entry_id INTEGER NOT NULL,
@@ -27,14 +35,16 @@ CREATE TABLE IF NOT EXISTS entry_tag (
     FOREIGN KEY (entry_id) REFERENCES entry (id),
     FOREIGN KEY (tag_id) REFERENCES tag (id)
 );
-
+/*
+好感
+*/
 CREATE TABLE IF NOT EXISTS heki_radar_chart (
     entry_id INTEGER PRIMARY KEY,
     ai INTEGER DEFAULT 0,
     nu INTEGER DEFAULT 0,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*スリーサイズ*/
 CREATE TABLE IF NOT EXISTS bwh (
     entry_id INTEGER PRIMARY KEY,
     bust INTEGER,
@@ -44,32 +54,32 @@ CREATE TABLE IF NOT EXISTS bwh (
     weight INTEGER,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*髪の長さ*/
 CREATE TABLE IF NOT EXISTS hairlength (
     entry_id INTEGER PRIMARY KEY,
     length TEXT,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*髪色*/
 CREATE TABLE IF NOT EXISTS haircolor (
     entry_id INTEGER PRIMARY KEY,
     color TEXT,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*髪型*/
 CREATE TABLE IF NOT EXISTS hairstyle (
     entry_id INTEGER PRIMARY KEY,
     style TEXT,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*性格*/
 CREATE TABLE IF NOT EXISTS personality (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entry_id INTEGER NOT NULL,
     type TEXT NOT NULL,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
-
+/*urlリンク*/
 CREATE TABLE IF NOT EXISTS link (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entry_id INTEGER NOT NULL,
