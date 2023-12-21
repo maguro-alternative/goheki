@@ -1,4 +1,4 @@
-package utility
+package service
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -6,12 +6,12 @@ import (
 	"github.com/maguro-alternative/goheki/pkg/db"
 )
 
-type botHandlerDB struct {
+type databaseHandler struct {
 	DBHandler *db.DBHandler
 }
 
-func NewSqlDB(dbSql *sqlx.DB) *botHandlerDB {
-	return &botHandlerDB{
+func NewSqlDB(dbSql *sqlx.DB) *databaseHandler {
+	return &databaseHandler{
 		DBHandler: db.NewDBHandler(dbSql),
 	}
 }

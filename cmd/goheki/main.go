@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/maguro-alternative/goheki/configs/envconfig"
 	"github.com/maguro-alternative/goheki/pkg/db"
-	"github.com/maguro-alternative/goheki/pkg/cookie"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/service/cookie"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/article"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/middleware"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"

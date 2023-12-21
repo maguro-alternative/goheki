@@ -8,7 +8,7 @@ import (
 )
 
 type IndexService struct {
-	db             *sqlx.DB
+	DB             *sqlx.DB
 	CookieStore    *sessions.CookieStore
 	Env            *envconfig.Env
 }
@@ -20,7 +20,7 @@ func NewIndexService(
 	env *envconfig.Env,
 ) *IndexService {
 	return &IndexService{
-		db:             db,
+		DB:             db,
 		CookieStore:    cookieStore,
 		Env:            env,
 	}
