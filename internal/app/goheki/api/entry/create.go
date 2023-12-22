@@ -47,7 +47,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	_, err = h.svc.DB.ExecContext(r.Context(), query, entry)
+	_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 	if err != nil {
 		return
 	}
