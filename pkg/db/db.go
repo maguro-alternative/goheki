@@ -215,3 +215,14 @@ func retryOperation(ctx context.Context, operation func() error) error {
 	})
 	return errors.WithStack(err)
 }
+
+func In(query string, args ...any) (string, []any, error) {
+	for _, arg := range args {
+		if arg == nil {
+			return "", nil, errors.New("nil arguments are not allowed")
+		}
+	}
+
+	query, param, err := sqlx.In(query, args...)
+	return query, param, errors.WithStack(err)
+}
