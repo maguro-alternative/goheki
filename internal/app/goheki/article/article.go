@@ -62,23 +62,3 @@ func (h *IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 }
-
-func (h *ShowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	db := service.NewSqlDB(h.svc.DB)
-	db.DBHandler.ExecContext(r.Context(), "SELECT * FROM articles")
-
-}
-
-func (h *CreateHandler) Create(w http.ResponseWriter, r *http.Request) {
-	db := service.NewSqlDB(h.svc.DB)
-	db.DBHandler.ExecContext(r.Context(), "INSERT INTO articles (title, body) VALUES (?, ?)", "title", "body")
-
-}
-
-func Edit(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func Delete(w http.ResponseWriter, r *http.Request) {
-
-}
