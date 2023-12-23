@@ -35,8 +35,8 @@ func main() {
 	mux := http.NewServeMux()
 	middleChain := alice.New(middleware.CORS)
 	mux.Handle("/", middleChain.Then(article.NewIndexHandler(indexService)))
-	mux.Handle("/api/create", middleChain.Then(entry.NewCreateHandler(indexService)))
-	mux.Handle("/api/read", middleChain.Then(entry.NewReadHandler(indexService)))
+	mux.Handle("/api/entry/create", middleChain.Then(entry.NewCreateHandler(indexService)))
+	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
 	//mux.Handle("/edit", middleChain.Then(article.Edit))
 	//mux.Handle("/delete", middleChain.Then(article.Delete))
 
