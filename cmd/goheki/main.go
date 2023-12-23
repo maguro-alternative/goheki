@@ -7,6 +7,7 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/article"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/middleware"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
 
 	"log"
 	"net/http"
@@ -34,8 +35,8 @@ func main() {
 	mux := http.NewServeMux()
 	middleChain := alice.New(middleware.CORS)
 	mux.Handle("/", middleChain.Then(article.NewIndexHandler(indexService)))
-	//mux.Handle("/show", middleChain.Then(article.Show))
-	//mux.Handle("/create", middleChain.Then(article.Create))
+	mux.Handle("/api/create", middleChain.Then(entry.NewCreateHandler(indexService)))
+	mux.Handle("/api/read", middleChain.Then(entry.NewReadHandler(indexService)))
 	//mux.Handle("/edit", middleChain.Then(article.Edit))
 	//mux.Handle("/delete", middleChain.Then(article.Delete))
 
