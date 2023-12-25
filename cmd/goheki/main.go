@@ -40,6 +40,7 @@ func main() {
 	//mux.Handle("/edit", middleChain.Then(article.Edit))
 	//mux.Handle("/delete", middleChain.Then(article.Delete))
 
+	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
