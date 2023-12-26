@@ -13,9 +13,8 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service/cookie"
 
-	//"github.com/maguro-alternative/goheki/pkg/db"
+	"github.com/maguro-alternative/goheki/pkg/db"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,8 +23,10 @@ func TestCreateHandler(t *testing.T) {
 	env, err := envconfig.NewEnv()
 	assert.NoError(t, err)
 	// データベースに接続
-	//assert.Equal(t, "postgres", env.DatabaseURL)
-	indexDB, err := sqlx.Open("postgres", env.DatabaseURL)
+	indexDB, err := db.NewPostgresDB(env.DatabaseURL)
+	assert.NoError(t, err)
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 	var indexService = service.NewIndexService(
 		indexDB,
@@ -47,7 +48,6 @@ func TestCreateHandler(t *testing.T) {
 			CreateAt: time.Now(),
 		},
 	}
-	var entry2 []Entry
 
 	// テストの実行
 	h := NewCreateHandler(indexService)
@@ -55,14 +55,7 @@ func TestCreateHandler(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
 	assert.NoError(t, err)
 
-	err = json.NewDecoder(req.Body).Decode(&entry2)
-	assert.NoError(t, err)
-
 	w := httptest.NewRecorder()
-
-	// トランザクションの開始
-	tx, err := h.svc.DB.BeginTx(ctx, nil)
-	assert.NoError(t, err)
 
 	// テストの実行
 	h.ServeHTTP(w, req)
@@ -78,6 +71,5 @@ func TestCreateHandler(t *testing.T) {
 	err = json.NewDecoder(res.Body).Decode(&actual)
 	assert.NoError(t, err)
 
-	assert.Equal(t, entry2, actual)
-	assert.Equal(t, nil, actual)
+	assert.Equal(t, entry, actual)
 }
