@@ -29,27 +29,28 @@ func TestCreateHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := xDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// テストデータの準備
+	entry := []Entry{
+		{
+			Name:      "テストエントリ1",
+			Image:     "https://example.com/image1.png",
+			Content:   "テスト内容1",
+			CreatedAt: fixedTime,
+		},
+		{
+			Name:      "テストエントリ2",
+			Image:     "https://example.com/image2.png",
+			Content:   "テスト内容2",
+			CreatedAt: fixedTime,
+		},
+	}
+
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
 		env,
 	)
-	// テストデータの準備
-	entry := []Entry{
-		{
-			Name:     "テストエントリ1",
-			Image:    "https://example.com/image1.png",
-			Content:  "テスト内容1",
-			CreateAt: time.Now(),
-		},
-		{
-			Name:     "テストエントリ2",
-			Image:    "https://example.com/image2.png",
-			Content:  "テスト内容2",
-			CreateAt: time.Now(),
-		},
-	}
-
 	// テストの実行
 	h := NewCreateHandler(indexService)
 	eJson, err := json.Marshal(&entry)
