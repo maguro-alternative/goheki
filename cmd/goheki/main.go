@@ -9,6 +9,7 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
 
+	"context"
 	"log"
 	"net/http"
 
@@ -16,15 +17,17 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	// load env
 	env, err := envconfig.NewEnv()
 	if err != nil {
 		log.Fatal(err)
 	}
-	indexDB, err := db.NewPostgresDB(env.DatabaseURL)
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer cleanup()
 	var indexService = service.NewIndexService(
 		indexDB,
 		cookie.Store,
