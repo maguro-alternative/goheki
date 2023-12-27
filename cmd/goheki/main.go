@@ -40,8 +40,8 @@ func main() {
 	mux.Handle("/", middleChain.Then(article.NewIndexHandler(indexService)))
 	mux.Handle("/api/entry/create", middleChain.Then(entry.NewCreateHandler(indexService)))
 	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
-	//mux.Handle("/edit", middleChain.Then(article.Edit))
-	//mux.Handle("/delete", middleChain.Then(article.Delete))
+	mux.Handle("/api/entry/update", middleChain.Then(entry.NewUpdateHandler(indexService)))
+	mux.Handle("/api/entry/delete", middleChain.Then(entry.NewDeleteHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
