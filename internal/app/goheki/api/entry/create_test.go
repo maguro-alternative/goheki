@@ -23,13 +23,14 @@ func TestCreateHandler(t *testing.T) {
 	env, err := envconfig.NewEnv()
 	assert.NoError(t, err)
 	// データベースに接続
-	indexDB, err := db.NewPostgresDB(env.DatabaseURL)
+	xDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
 	assert.NoError(t, err)
+	defer cleanup()
 	// トランザクションの開始
-	tx, err := indexDB.BeginTxx(ctx, nil)
+	tx, err := xDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 	var indexService = service.NewIndexService(
-		indexDB,
+		tx,
 		cookie.Store,
 		env,
 	)
@@ -61,7 +62,7 @@ func TestCreateHandler(t *testing.T) {
 	h.ServeHTTP(w, req)
 
 	// ロールバック
-	tx.Rollback()
+	tx.RollbackCtx(ctx)
 
 	// 応答の検証
 	res := w.Result()
