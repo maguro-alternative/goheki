@@ -1,8 +1,11 @@
 package entry
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	"github.com/maguro-alternative/goheki/pkg/db"
+	//"github.com/maguro-alternative/goheki/pkg/db"
 
 	"encoding/json"
 	"net/http"
@@ -22,27 +25,27 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var entry []Entry
+	var entrys []Entry
 	query := `
 		SELECT
 			name,
 			image,
 			content,
-			create_at
+			created_at
 		FROM
 			entry
 	`
-	err := json.NewDecoder(r.Body).Decode(&entry)
+	//err := json.NewDecoder(r.Body).Decode(&entrys)
+	//if err != nil {
+	//log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	//}
+	//query, args, err := db.In(query, entrys)
+	//if err != nil {
+	//return
+	//}
+	err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
 	if err != nil {
-		return
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 	}
-	query, args, err := db.In(query, entry)
-	if err != nil {
-		return
-	}
-	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
-	if err != nil {
-		return
-	}
-	json.NewEncoder(w).Encode(&entry)
+	json.NewEncoder(w).Encode(&entrys)
 }
