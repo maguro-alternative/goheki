@@ -113,7 +113,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var entry []Entry
+	var entrys []Entry
 	query := `
 		UPDATE
 			entry
@@ -125,11 +125,11 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&entry)
+	err := json.NewDecoder(r.Body).Decode(&entrys)
 	if err != nil {
 		return
 	}
-	query, args, err := db.In(query, entry)
+	query, args, err := db.In(query, entrys)
 	if err != nil {
 		return
 	}
@@ -137,7 +137,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	json.NewEncoder(w).Encode(&entry)
+	json.NewEncoder(w).Encode(&entrys)
 }
 
 type DeleteHandler struct {
