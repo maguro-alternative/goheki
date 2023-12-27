@@ -16,7 +16,7 @@ type Entry struct {
 	Name     string    `db:"name" json:"name"`
 	Image    string    `db:"image" json:"image"`
 	Content  string    `db:"content" json:"content"`
-	CreateAt time.Time `db:"created_at" json:"created_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
 type CreateHandler struct {
