@@ -30,7 +30,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			name = :name,
 			image = :image,
 			content = :content,
-			create_at = :create_at
+			created_at = :create_at
 		WHERE
 			id = :id
 	`
