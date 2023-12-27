@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"fmt"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -333,6 +334,7 @@ func (db *DB) PreparexContext(ctx context.Context, query string) (*sqlx.Stmt, er
 	var stmt *sqlx.Stmt
 	operation := func() error {
 		stmt, err = db.driver.PreparexContext(ctx, query)
+		fmt.Println(query,err)
 		return errors.WithStack(err)
 	}
 	if err := retryOperation(ctx, func() error { return operation() }); err != nil {
