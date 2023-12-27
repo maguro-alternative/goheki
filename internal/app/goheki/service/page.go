@@ -2,20 +2,21 @@ package service
 
 import (
 	"github.com/maguro-alternative/goheki/configs/envconfig"
+	"github.com/maguro-alternative/goheki/pkg/db"
 
-	"github.com/jmoiron/sqlx"
+	//"github.com/jmoiron/sqlx"
 	"github.com/gorilla/sessions"
 )
 
 type IndexService struct {
-	DB             *sqlx.DB
+	DB             db.Driver
 	CookieStore    *sessions.CookieStore
 	Env            *envconfig.Env
 }
 
 // NewTODOService returns new TODOService.
 func NewIndexService(
-	db *sqlx.DB,
+	db db.Driver,
 	cookieStore *sessions.CookieStore,
 	env *envconfig.Env,
 ) *IndexService {
