@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	"github.com/maguro-alternative/goheki/pkg/db"
+	//"github.com/maguro-alternative/goheki/pkg/db"
 
 	"encoding/json"
 	"net/http"
@@ -127,15 +127,17 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&entrys)
 	if err != nil {
-		return
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	query, args, err := db.In(query, entrys)
-	if err != nil {
-		return
-	}
-	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
-	if err != nil {
-		return
+	//query, args, err := db.In(query, entrys)
+	//if err != nil {
+		//return
+	//}
+	for _, entry := range entrys {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		}
 	}
 	json.NewEncoder(w).Encode(&entrys)
 }
@@ -154,24 +156,29 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var entry []Entry
+	var entrys []Entry
 	query := `
 		DELETE FROM
 			entry
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&entry)
+	err := json.NewDecoder(r.Body).Decode(&entrys)
 	if err != nil {
 		return
 	}
-	query, args, err := db.In(query, entry)
+	//query, args, err := db.In(query, entry)
+	//if err != nil {
+		//return
+	//}
+	for _, entry := range entrys {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		}
+	}
 	if err != nil {
 		return
 	}
-	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
-	if err != nil {
-		return
-	}
-	json.NewEncoder(w).Encode(&entry)
+	json.NewEncoder(w).Encode(&entrys)
 }
