@@ -156,14 +156,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var entrys []Entry
+	var ids []int64
 	query := `
 		DELETE FROM
 			entry
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&entrys)
+	err := json.NewDecoder(r.Body).Decode(&ids)
 	if err != nil {
 		return
 	}
@@ -171,8 +171,8 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//if err != nil {
 		//return
 	//}
-	for _, entry := range entrys {
-		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
+	for _, id := range ids {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, id)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 		}
@@ -180,5 +180,5 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	json.NewEncoder(w).Encode(&entrys)
+	json.NewEncoder(w).Encode(&ids)
 }
