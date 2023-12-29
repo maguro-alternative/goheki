@@ -13,14 +13,7 @@ import (
 )
 
 type Entry struct {
-	Name      string    `db:"name" json:"name"`
-	Image     string    `db:"image" json:"image"`
-	Content   string    `db:"content" json:"content"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-}
-
-type UpdateEntry struct {
-	ID        int64     `db:"id" json:"id"`
+	ID        *int64    `db:"id" json:"id"`
 	Name      string    `db:"name" json:"name"`
 	Image     string    `db:"image" json:"image"`
 	Content   string    `db:"content" json:"content"`
@@ -133,7 +126,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			name = :name,
 			image = :image,
 			content = :content,
-			created_at = :create_at
+			created_at = :created_at
 		WHERE
 			id = :id
 	`
