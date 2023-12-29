@@ -220,7 +220,7 @@ func TestEntryHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewReadHandler(indexService)
+		h := NewUpdateHandler(indexService)
 		eJson, err := json.Marshal(&updateEntry)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/update", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
@@ -293,18 +293,28 @@ func TestEntryHandler(t *testing.T) {
 			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
 		}
+		query = `
+			SELECT
+				id
+			FROM
+				entry
+		`
+		var ids []int64
+		delIDs := DeleteIDs{IDs: ids}
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
 			env,
 		)
 		// テストの実行
-		h := NewReadHandler(indexService)
-		eJson, err := json.Marshal(&entry)
+		h := NewDeleteHandler(indexService)
+		eJson, err := json.Marshal(&delIDs)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/delete", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
-		err = json.NewDecoder(req.Body).Decode(&entry)
+		err = json.NewDecoder(req.Body).Decode(&delIDs)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -321,10 +331,10 @@ func TestEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual []Entry
+		var actual DeleteIDs
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, delIDs, actual)
 	})
 }
