@@ -9,13 +9,11 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
 )
 
 type Tag struct {
 	ID        *int64    `db:"id" json:"id"`
 	Name      string    `db:"name" json:"name"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
 type DeleteIDs struct {
@@ -39,11 +37,9 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var tags []Tag
 	query := `
 		INSERT INTO tag (
-			name,
-			created_at
+			name
 		) VALUES (
-			:name,
-			:created_at
+			:name
 		)
 	`
 	err := json.NewDecoder(r.Body).Decode(&tags)
@@ -56,4 +52,5 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(fmt.Sprintf("insert error: %v", err))
 		}
 	}
+	json.NewEncoder(w).Encode(tags)
 }
