@@ -320,9 +320,6 @@ func TestEntryHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/delete", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
-		err = json.NewDecoder(req.Body).Decode(&delIDs)
-		assert.NoError(t, err)
-
 		w := httptest.NewRecorder()
 
 		assert.NoError(t, err)
