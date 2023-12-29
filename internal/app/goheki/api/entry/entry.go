@@ -13,9 +13,17 @@ import (
 )
 
 type Entry struct {
-	Name     string    `db:"name" json:"name"`
-	Image    string    `db:"image" json:"image"`
-	Content  string    `db:"content" json:"content"`
+	Name      string    `db:"name" json:"name"`
+	Image     string    `db:"image" json:"image"`
+	Content   string    `db:"content" json:"content"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+
+type UpdateEntry struct {
+	ID        int64     `db:"id" json:"id"`
+	Name      string    `db:"name" json:"name"`
+	Image     string    `db:"image" json:"image"`
+	Content   string    `db:"content" json:"content"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
@@ -135,7 +143,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	//query, args, err := db.In(query, entrys)
 	//if err != nil {
-		//return
+	//return
 	//}
 	for _, entry := range entrys {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
@@ -174,7 +182,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	//query, args, err := db.In(query, entry)
 	//if err != nil {
-		//return
+	//return
 	//}
 	for _, id := range ids {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, id)
