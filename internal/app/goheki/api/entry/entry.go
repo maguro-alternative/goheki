@@ -19,6 +19,10 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
+type DeleteIDs struct {
+	IDs []int64 `json:"ids"`
+}
+
 type CreateHandler struct {
 	svc *service.IndexService
 }
@@ -157,15 +161,16 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var ids []int64
+	var delIDs DeleteIDs
 	query := `
 		DELETE FROM
 			entry
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&ids)
+	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		return
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
 	//query, args, err := db.In(query, entry)
 	//if err != nil {
@@ -178,7 +183,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		return
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 	}
-	json.NewEncoder(w).Encode(&ids)
+	json.NewEncoder(w).Encode(&delIDs)
 }
