@@ -132,9 +132,6 @@ func TestEntryHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/read", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
-		err = json.NewDecoder(req.Body).Decode(&entry)
-		assert.NoError(t, err)
-
 		w := httptest.NewRecorder()
 
 		assert.NoError(t, err)
@@ -169,7 +166,7 @@ func TestEntryHandler(t *testing.T) {
 		assert.NoError(t, err)
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		entry := []Entry{
+		entrys := []Entry{
 			{
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
@@ -183,7 +180,7 @@ func TestEntryHandler(t *testing.T) {
 				CreatedAt: fixedTime,
 			},
 		}
-		updateEntry := []Entry{
+		updateEntrys := []Entry{
 			{
 				Name:      "テストエントリ3",
 				Image:     "https://example.com/image3.png",
@@ -210,9 +207,21 @@ func TestEntryHandler(t *testing.T) {
 				:created_at
 			)
 		`
-		for _, entry := range entry {
+		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				entry
+		`
+		var ids []int64
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+		for i, id := range ids {
+			updateEntrys[i].ID = &id
 		}
 		var indexService = service.NewIndexService(
 			tx,
@@ -221,11 +230,8 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewUpdateHandler(indexService)
-		eJson, err := json.Marshal(&updateEntry)
+		eJson, err := json.Marshal(&updateEntrys)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/update", bytes.NewBuffer(eJson))
-		assert.NoError(t, err)
-
-		err = json.NewDecoder(req.Body).Decode(&updateEntry)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -246,7 +252,7 @@ func TestEntryHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, updateEntrys, actual)
 	})
 
 	t.Run("entry削除", func(t *testing.T) {
