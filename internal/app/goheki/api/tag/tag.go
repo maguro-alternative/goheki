@@ -84,3 +84,38 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tags)
 }
 
+type UpdateHandler struct {
+	svc *service.IndexService
+}
+
+func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
+	return &UpdateHandler{
+		svc: svc,
+	}
+}
+
+func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		return
+	}
+	var tags []Tag
+	query := `
+		UPDATE tag
+		SET
+			name = :name
+		WHERE
+			id = :id
+	`
+	err := json.NewDecoder(r.Body).Decode(&tags)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+	for _, tag := range tags {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, tag)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("update error: %v", err))
+		}
+	}
+	json.NewEncoder(w).Encode(tags)
+}
+
