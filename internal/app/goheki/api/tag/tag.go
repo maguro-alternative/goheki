@@ -119,3 +119,32 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tags)
 }
 
+type DeleteHandler struct {
+	svc *service.IndexService
+}
+
+func NewDeleteHandler(svc *service.IndexService) *DeleteHandler {
+	return &DeleteHandler{
+		svc: svc,
+	}
+}
+
+func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		return
+	}
+	var delIDs DeleteIDs
+	query := `
+		DELETE FROM tag
+		WHERE id IN (:ids)
+	`
+	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+	_, err = h.svc.DB.NamedExecContext(r.Context(), query, delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("delete error: %v", err))
+	}
+	json.NewEncoder(w).Encode(delIDs)
+}
