@@ -64,4 +64,63 @@ func TestTagHandler(t *testing.T) {
 		assert.Equal(t, tag[0].Name, tags[0].Name)
 		assert.Equal(t, tag[1].Name, tags[1].Name)
 	})
+
+	t.Run("tag取得", func(t *testing.T) {
+		ctx := context.Background()
+		env, err := envconfig.NewEnv()
+		assert.NoError(t, err)
+		// データベースに接続
+		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+		assert.NoError(t, err)
+		defer cleanup()
+		// トランザクションの開始
+		tx, err := indexDB.BeginTxx(ctx, nil)
+		assert.NoError(t, err)
+		// テストデータの準備
+		tag := []Tag{
+			{
+				Name:      "テストタグ1",
+			},
+			{
+				Name:      "テストタグ2",
+			},
+		}
+
+		query := `
+			INSERT INTO tag (
+				name
+			) VALUES (
+				:name
+			)
+		`
+		for _, tag := range tag {
+			_, err = tx.NamedExecContext(ctx, query, tag)
+			assert.NoError(t, err)
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewReadHandler(indexService)
+		eJson, err := json.Marshal(&tag)
+		req, err := http.NewRequest(http.MethodPost, "/api/tag/read", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var tags []Tag
+		err = json.NewDecoder(w.Body).Decode(&tags)
+		assert.NoError(t, err)
+
+		assert.Equal(t, tag[0].Name, tags[0].Name)
+		assert.Equal(t, tag[1].Name, tags[1].Name)
+	})
 }
