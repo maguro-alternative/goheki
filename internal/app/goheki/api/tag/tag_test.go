@@ -106,7 +106,7 @@ func TestTagHandler(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
 		eJson, err := json.Marshal(&tag)
-		req, err := http.NewRequest(http.MethodPost, "/api/tag/read", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodGet, "/api/tag/read", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
