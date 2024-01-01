@@ -306,9 +306,9 @@ func TestEntryHandler(t *testing.T) {
 				entry
 		`
 		var ids []int64
-		delIDs := DeleteIDs{IDs: ids}
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
+		delIDs := DeleteIDs{IDs: ids}
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
