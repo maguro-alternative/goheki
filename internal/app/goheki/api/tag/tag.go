@@ -5,7 +5,9 @@ import (
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	"github.com/maguro-alternative/goheki/pkg/db"
+	//"github.com/maguro-alternative/goheki/pkg/db"
+
+	"github.com/jmoiron/sqlx"
 
 	"encoding/json"
 	"net/http"
@@ -135,21 +137,19 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var delIDs DeleteIDs
-	query := `
-		DELETE FROM tag
-		WHERE id IN (?)
-	`
+	query := `DELETE FROM tag WHERE id IN (?)`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	query, args, err := db.In(query, delIDs.IDs)
+	query, args, err := sqlx.In(query, delIDs.IDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
 	}
+	query = sqlx.Rebind(len(delIDs.IDs),query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("delete error: %v", err), query, args)
 	}
-	json.NewEncoder(w).Encode(delIDs)
+	json.NewEncoder(w).Encode(&delIDs)
 }
