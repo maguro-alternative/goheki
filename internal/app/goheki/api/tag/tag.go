@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	//"github.com/maguro-alternative/goheki/pkg/db"
+	"github.com/maguro-alternative/goheki/pkg/db"
 
 	"encoding/json"
 	"net/http"
@@ -100,7 +100,8 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	var tags []Tag
 	query := `
-		UPDATE tag
+		UPDATE
+			tag
 		SET
 			name = :name
 		WHERE
@@ -130,21 +131,25 @@ func NewDeleteHandler(svc *service.IndexService) *DeleteHandler {
 }
 
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodDelete {
 		return
 	}
 	var delIDs DeleteIDs
 	query := `
 		DELETE FROM tag
-		WHERE id IN (:ids)
+		WHERE id IN (?)
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	_, err = h.svc.DB.NamedExecContext(r.Context(), query, delIDs)
+	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("delete error: %v", err))
+		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
+	}
+	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("delete error: %v", err), query, args)
 	}
 	json.NewEncoder(w).Encode(delIDs)
 }
