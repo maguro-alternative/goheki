@@ -231,7 +231,7 @@ func TestEntryHandler(t *testing.T) {
 		// テストの実行
 		h := NewUpdateHandler(indexService)
 		eJson, err := json.Marshal(&updateEntrys)
-		req, err := http.NewRequest(http.MethodPost, "/api/entry/update", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodPut, "/api/entry/update", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

@@ -115,7 +115,7 @@ func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
 }
 
 func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodPut {
 		return
 	}
 	var entrys []Entry
