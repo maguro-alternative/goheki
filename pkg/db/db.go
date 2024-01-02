@@ -250,6 +250,21 @@ func In(query string, args ...any) (string, []any, error) {
 	return query, param, errors.WithStack(err)
 }
 
+func Rebind(bindType int, query string) string {
+	/*
+		クエリを生成する関数
+		postgresの場合はbindTypeにはlen(args)を入れる
+
+		引数
+			bindType: len(args)
+			query: sql文
+
+		戻り値
+			sql文
+	*/
+	return sqlx.Rebind(bindType, query)
+}
+
 func NewDBV1(ctx context.Context, driverName string, path string) (*DB, func(), error) {
 	/*
 		データベースに接続する関数
