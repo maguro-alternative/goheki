@@ -76,7 +76,7 @@ func NewReadHandler(svc *service.IndexService) *ReadHandler {
 }
 
 func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		return
 	}
 	var entrys []Entry
