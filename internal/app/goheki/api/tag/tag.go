@@ -135,7 +135,12 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var delIDs DeleteIDs
-	query := `DELETE FROM tag WHERE id IN (?)`
+	query := `
+		DELETE FROM
+			tag
+		WHERE
+			id IN (?)
+	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
