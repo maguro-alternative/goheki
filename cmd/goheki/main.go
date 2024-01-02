@@ -8,6 +8,7 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/middleware"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 
 	"context"
 	"log"
@@ -42,6 +43,10 @@ func main() {
 	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
 	mux.Handle("/api/entry/update", middleChain.Then(entry.NewUpdateHandler(indexService)))
 	mux.Handle("/api/entry/delete", middleChain.Then(entry.NewDeleteHandler(indexService)))
+	mux.Handle("/api/tag/create", middleChain.Then(tag.NewCreateHandler(indexService)))
+	mux.Handle("/api/tag/read", middleChain.Then(tag.NewReadHandler(indexService)))
+	mux.Handle("/api/tag/update", middleChain.Then(tag.NewUpdateHandler(indexService)))
+	mux.Handle("/api/tag/delete", middleChain.Then(tag.NewDeleteHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
