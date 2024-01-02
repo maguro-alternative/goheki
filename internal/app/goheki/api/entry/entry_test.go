@@ -317,7 +317,7 @@ func TestEntryHandler(t *testing.T) {
 		// テストの実行
 		h := NewDeleteHandler(indexService)
 		eJson, err := json.Marshal(&delIDs)
-		req, err := http.NewRequest(http.MethodPost, "/api/entry/delete", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodDelete, "/api/entry/delete", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

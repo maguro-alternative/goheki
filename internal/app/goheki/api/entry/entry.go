@@ -158,7 +158,7 @@ func NewDeleteHandler(svc *service.IndexService) *DeleteHandler {
 }
 
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodDelete {
 		return
 	}
 	var ids []int64
