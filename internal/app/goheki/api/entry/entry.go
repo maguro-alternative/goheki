@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	//"github.com/maguro-alternative/goheki/pkg/db"
+	"github.com/maguro-alternative/goheki/pkg/db"
 
 	"encoding/json"
 	"net/http"
@@ -161,28 +161,23 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		return
 	}
-	var ids []int64
 	var delIDs DeleteIDs
 	query := `
 		DELETE FROM
 			entry
 		WHERE
-			id = :id
+			id IN (?)
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	//query, args, err := db.In(query, entry)
-	//if err != nil {
-	//return
-	//}
-	for _, id := range ids {
-		_, err = h.svc.DB.NamedExecContext(r.Context(), query, id)
-		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
-		}
+	query, args, err := db.In(query, delIDs.IDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
 	}
+	query = db.Rebind(len(delIDs.IDs),query)
+	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 	}
