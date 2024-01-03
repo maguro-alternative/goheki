@@ -13,7 +13,7 @@ import (
 
 type Source struct {
 	ID      *int64 `db:"id" json:"id"`
-	EntryID *int64 `db:"entry_id" json:"entry_id"`
+	EntryID int64  `db:"entry_id" json:"entry_id"`
 	Name    string `db:"name" json:"name"`
 	Url     string `db:"url" json:"url"`
 	Type    string `db:"type" json:"type"`
@@ -59,3 +59,4 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(sources)
 }
+
