@@ -65,17 +65,17 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&entrys)
 }
 
-type ReadHandler struct {
+type AllReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewReadHandler(svc *service.IndexService) *ReadHandler {
-	return &ReadHandler{
+func NewAllReadHandler(svc *service.IndexService) *AllReadHandler {
+	return &AllReadHandler{
 		svc: svc,
 	}
 }
 
-func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
