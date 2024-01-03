@@ -40,7 +40,7 @@ func main() {
 	middleChain := alice.New(middleware.CORS)
 	mux.Handle("/", middleChain.Then(article.NewIndexHandler(indexService)))
 	mux.Handle("/api/entry/create", middleChain.Then(entry.NewCreateHandler(indexService)))
-	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
+	mux.Handle("/api/entry/all-read", middleChain.Then(entry.NewAllReadHandler(indexService)))
 	mux.Handle("/api/entry/update", middleChain.Then(entry.NewUpdateHandler(indexService)))
 	mux.Handle("/api/entry/delete", middleChain.Then(entry.NewDeleteHandler(indexService)))
 	mux.Handle("/api/tag/create", middleChain.Then(tag.NewCreateHandler(indexService)))
