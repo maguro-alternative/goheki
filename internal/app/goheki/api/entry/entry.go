@@ -20,7 +20,11 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
-type DeleteIDs struct {
+type ID struct {
+	ID int64 `json:"id"`
+}
+
+type IDs struct {
 	IDs []int64 `json:"ids"`
 }
 
@@ -89,15 +93,89 @@ func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FROM
 			entry
 	`
-	//err := json.NewDecoder(r.Body).Decode(&entrys)
-	//if err != nil {
-	//log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
-	//}
-	//query, args, err := db.In(query, entrys)
-	//if err != nil {
-	//return
-	//}
+
 	err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+	}
+	json.NewEncoder(w).Encode(&entrys)
+}
+
+type GetReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewGetReadHandler(svc *service.IndexService) *AllReadHandler {
+	return &AllReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var entry Entry
+	var id ID
+	query := `
+		SELECT
+			name,
+			image,
+			content,
+			created_at
+		FROM
+			entry
+		WHERE
+			id = ?
+	`
+	err := json.NewDecoder(r.Body).Decode(&id)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+
+	err = h.svc.DB.GetContext(r.Context(), &entry, query, id.ID)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+	}
+	json.NewEncoder(w).Encode(&entry)
+}
+
+type MultipleReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewMultipleReadHandler(svc *service.IndexService) *AllReadHandler {
+	return &AllReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var entrys []Entry
+	var ids IDs
+	query := `
+		SELECT
+			name,
+			image,
+			content,
+			created_at
+		FROM
+			entry
+		WHERE
+			id IN (?)
+	`
+	err := json.NewDecoder(r.Body).Decode(&ids)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+	query, args, err := db.In(query, ids.IDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), ids.IDs)
+	}
+	err = h.svc.DB.SelectContext(r.Context(), &entrys, query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 	}
@@ -161,7 +239,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		return
 	}
-	var delIDs DeleteIDs
+	var delIDs IDs
 	query := `
 		DELETE FROM
 			entry
