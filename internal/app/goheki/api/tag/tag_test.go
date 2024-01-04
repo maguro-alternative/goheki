@@ -224,7 +224,7 @@ func TestTagHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, selectQuery)
 		assert.NoError(t, err)
-		delIDs := DeleteIDs{IDs: ids}
+		delIDs := IDs{IDs: ids}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -244,7 +244,7 @@ func TestTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actual DeleteIDs
+		var actual IDs
 		err = json.NewDecoder(w.Body).Decode(&actual)
 		assert.NoError(t, err)
 
