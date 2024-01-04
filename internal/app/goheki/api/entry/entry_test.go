@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -165,7 +166,6 @@ func TestEntryHandler(t *testing.T) {
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
 		var ids []int64
-		var idJson ID
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
 		entry := []Entry{
@@ -207,7 +207,6 @@ func TestEntryHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
-		idJson.ID = ids[0]
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -215,8 +214,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewGetReadHandler(indexService)
-		eJson, err := json.Marshal(&idJson)
-		req, err := http.NewRequest(http.MethodGet, "/api/entry/get-read", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/get-read?id=%d",ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

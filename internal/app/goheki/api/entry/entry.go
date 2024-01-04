@@ -116,7 +116,7 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var entry Entry
-	var id ID
+	//var id ID
 	query := `
 		SELECT
 			name,
@@ -126,16 +126,13 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FROM
 			entry
 		WHERE
-			id = ?
+			id = $1
 	`
-	err := json.NewDecoder(r.Body).Decode(&id)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
-	}
+	id := r.URL.Query().Get("id")
 
-	err = h.svc.DB.GetContext(r.Context(), &entry, query, id.ID)
+	err := h.svc.DB.GetContext(r.Context(), &entry, query, id)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v \nid:%s", err, query, id))
 	}
 	json.NewEncoder(w).Encode(&entry)
 }
