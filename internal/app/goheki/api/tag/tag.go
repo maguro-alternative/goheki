@@ -115,7 +115,42 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tag)
 }
 
+type MultipleReadHandler struct {
+	svc *service.IndexService
+}
 
+func NewReadHandler(svc *service.IndexService) *MultipleReadHandler {
+	return &MultipleReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var tags []Tag
+	var ids IDs
+	query := `
+		SELECT
+			id,
+			name
+		FROM
+			tag
+		WHERE
+			id IN (?)
+	`
+	query, args, err := db.In(query, ids.IDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), ids.IDs)
+	}
+	query = db.Rebind(len(ids.IDs), query)
+	err = h.svc.DB.SelectContext(r.Context(), &tags, query, args...)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(tags)
+}
 
 type UpdateHandler struct {
 	svc *service.IndexService
