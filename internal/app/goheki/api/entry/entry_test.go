@@ -240,6 +240,93 @@ func TestEntryHandler(t *testing.T) {
 		assert.Equal(t, entry[0], actual)
 	})
 
+	t.Run("entry2件取得", func(t *testing.T) {
+		ctx := context.Background()
+		env, err := envconfig.NewEnv()
+		assert.NoError(t, err)
+		// データベースに接続
+		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+		assert.NoError(t, err)
+		defer cleanup()
+		// トランザクションの開始
+		tx, err := indexDB.BeginTxx(ctx, nil)
+		assert.NoError(t, err)
+		var ids []int64
+		var idsJson IDs
+		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+		// テストデータの準備
+		entry := []Entry{
+			{
+				Name:      "テストエントリ1",
+				Image:     "https://example.com/image1.png",
+				Content:   "テスト内容1",
+				CreatedAt: fixedTime,
+			},
+			{
+				Name:      "テストエントリ2",
+				Image:     "https://example.com/image2.png",
+				Content:   "テスト内容2",
+				CreatedAt: fixedTime,
+			},
+		}
+		query := `
+			INSERT INTO entry (
+				name,
+				image,
+				content,
+				created_at
+			) VALUES (
+				:name,
+				:image,
+				:content,
+				:created_at
+			)
+		`
+		for _, entry := range entry {
+			_, err = tx.NamedExecContext(ctx, query, entry)
+			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				entry
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+		idsJson.IDs = ids
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewMultipleReadHandler(indexService)
+		eJson, err := json.Marshal(&idsJson)
+		req, err := http.NewRequest(http.MethodGet, "/api/entry/multiple-read", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// ロールバック
+		tx.RollbackCtx(ctx)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		var actual []Entry
+		err = json.NewDecoder(res.Body).Decode(&actual)
+		assert.NoError(t, err)
+
+		assert.Equal(t, entry, actual)
+	})
+
 	t.Run("entry更新", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
