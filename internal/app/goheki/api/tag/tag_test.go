@@ -124,7 +124,7 @@ func TestTagHandler(t *testing.T) {
 		assert.Equal(t, tag[1].Name, tags[1].Name)
 	})
 
-	t.Run("tag全件取得", func(t *testing.T) {
+	t.Run("tag1件取得", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
 		assert.NoError(t, err)
@@ -161,7 +161,7 @@ func TestTagHandler(t *testing.T) {
 			SELECT
 				id
 			FROM
-				entry
+				tag
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
@@ -172,7 +172,7 @@ func TestTagHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewAllReadHandler(indexService)
+		h := NewGetReadHandler(indexService)
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/get-read?id=%d",ids[0]), nil)
 		assert.NoError(t, err)
 

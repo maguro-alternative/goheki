@@ -106,7 +106,7 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FROM
 			tag
 		WHERE
-			id = ?
+			id = $1
 	`
 	id := r.URL.Query().Get("id")
 	err := h.svc.DB.GetContext(r.Context(), &tag, query, id)
