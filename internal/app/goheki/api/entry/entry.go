@@ -164,8 +164,11 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		WHERE
 			id IN (?)
 	`
-	queryIDs := r.URL.Query()
-	for _, id := range queryIDs["id"] {
+	queryIDs, ok := r.URL.Query()["id"]
+	if !ok {
+		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
+	}
+	for _, id := range queryIDs {
 		ids = append(ids, id)
 	}
 	query, args, err := db.In(query, ids)
