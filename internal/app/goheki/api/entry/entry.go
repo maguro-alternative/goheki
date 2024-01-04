@@ -105,8 +105,8 @@ type GetReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewGetReadHandler(svc *service.IndexService) *AllReadHandler {
-	return &AllReadHandler{
+func NewGetReadHandler(svc *service.IndexService) *GetReadHandler {
+	return &GetReadHandler{
 		svc: svc,
 	}
 }
