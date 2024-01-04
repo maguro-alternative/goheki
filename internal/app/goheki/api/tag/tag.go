@@ -84,6 +84,37 @@ func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tags)
 }
 
+type GetReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewGetReadHandler(svc *service.IndexService) *GetReadHandler {
+	return &GetReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var tag Tag
+	query := `
+		SELECT
+			id,
+			name
+		FROM
+			tag
+		WHERE
+			id = ?
+	`
+	err := h.svc.DB.SelectContext(r.Context(), &tag, query)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(tag)
+}
+
 type UpdateHandler struct {
 	svc *service.IndexService
 }
