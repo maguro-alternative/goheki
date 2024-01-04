@@ -300,8 +300,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewMultipleReadHandler(indexService)
-		eJson, err := json.Marshal(&idsJson)
-		req, err := http.NewRequest(http.MethodGet, "/api/entry/multiple-read", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/multiple-read?id=%d&id=%d",ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

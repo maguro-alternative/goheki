@@ -152,7 +152,7 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var entrys []Entry
-	var ids IDs
+	var ids []string
 	query := `
 		SELECT
 			name,
@@ -164,18 +164,18 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		WHERE
 			id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&ids)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	queryIDs := r.URL.Query()
+	for _, id := range queryIDs["id"] {
+		ids = append(ids, id)
 	}
-	query, args, err := db.In(query, ids.IDs)
+	query, args, err := db.In(query, ids)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), ids.IDs)
+		log.Fatal(fmt.Sprintf("in error: %v", err), ids)
 	}
-	query = db.Rebind(len(ids.IDs), query)
+	query = db.Rebind(len(ids), query)
 	err = h.svc.DB.SelectContext(r.Context(), &entrys, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v\nid:%v", err, query, ids))
 	}
 	json.NewEncoder(w).Encode(&entrys)
 }
