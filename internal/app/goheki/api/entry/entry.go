@@ -144,8 +144,8 @@ type MultipleReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewMultipleReadHandler(svc *service.IndexService) *AllReadHandler {
-	return &AllReadHandler{
+func NewMultipleReadHandler(svc *service.IndexService) *MultipleReadHandler {
+	return &MultipleReadHandler{
 		svc: svc,
 	}
 }
@@ -175,6 +175,7 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("in error: %v", err), ids.IDs)
 	}
+	query = db.Rebind(len(ids.IDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &entrys, query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
