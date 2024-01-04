@@ -233,11 +233,11 @@ func TestEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual []Entry
+		var actual Entry
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, entry[0], actual)
 	})
 
 	t.Run("entry更新", func(t *testing.T) {
