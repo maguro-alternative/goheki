@@ -119,7 +119,7 @@ type MultipleReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewReadHandler(svc *service.IndexService) *MultipleReadHandler {
+func NewMultipleReadHandler(svc *service.IndexService) *MultipleReadHandler {
 	return &MultipleReadHandler{
 		svc: svc,
 	}
