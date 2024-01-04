@@ -108,7 +108,8 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = ?
 	`
-	err := h.svc.DB.GetContext(r.Context(), &tag, query)
+	id := r.URL.Query().Get("id")
+	err := h.svc.DB.GetContext(r.Context(), &tag, query, id)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
 	}
