@@ -16,7 +16,7 @@ type Tag struct {
 	Name      string    `db:"name" json:"name"`
 }
 
-type DeleteIDs struct {
+type IDs struct {
 	IDs []int64 `json:"ids"`
 }
 
@@ -134,7 +134,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		return
 	}
-	var delIDs DeleteIDs
+	var delIDs IDs
 	query := `
 		DELETE FROM
 			tag
