@@ -75,7 +75,6 @@ func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		SELECT
 			id,
-			entry_id,
 			name,
 			url,
 			type
@@ -107,17 +106,16 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		SELECT
 			id,
-			entry_id,
 			name,
 			url,
 			type
 		FROM
 			source
 		WHERE
-			entry_id = $1
+			id = $1
 	`
-	entryID := r.URL.Query().Get("entry_id")
-	err := h.svc.DB.GetContext(r.Context(), &sources, query, entryID)
+	id := r.URL.Query().Get("id")
+	err := h.svc.DB.GetContext(r.Context(), &sources, query, id)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
 	}
@@ -142,7 +140,6 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	query := `
 		SELECT
 			id,
-			entry_id,
 			name,
 			url,
 			type

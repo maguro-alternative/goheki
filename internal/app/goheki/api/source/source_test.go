@@ -42,7 +42,7 @@ func TestSourceHandler(t *testing.T) {
 		assert.NoError(t, err)
 
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -62,7 +62,7 @@ func TestSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewCreateHandler(indexService)
-		eJson, err := json.Marshal(&source)
+		eJson, err := json.Marshal(&sources)
 		req, err := http.NewRequest(http.MethodPost, "/api/source/create", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -73,13 +73,13 @@ func TestSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var sources []Source
+		var actuals []Source
 		err = json.Unmarshal(w.Body.Bytes(), &sources)
 		assert.NoError(t, err)
 
-		assert.Equal(t, source[0].Name, sources[0].Name)
+		assert.Equal(t, actuals[0].Name, sources[0].Name)
 
-		assert.Equal(t, source[1].Name, sources[1].Name)
+		assert.Equal(t, actuals[1].Name, sources[1].Name)
 	})
 
 	t.Run("source全件取得", func(t *testing.T) {
@@ -93,10 +93,9 @@ func TestSourceHandler(t *testing.T) {
 		// トランザクションの開始
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
-		var ids []int64
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -120,54 +119,8 @@ func TestSourceHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
-			assert.NoError(t, err)
-		}
-
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
-		entrys := []Entry{
-			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-
-		query = `
-			INSERT INTO entry (
-				source_id,
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:source_id,
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 
@@ -188,13 +141,13 @@ func TestSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var sources []Source
-		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		var actuals []Source
+		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, source[0].Name, sources[0].Name)
+		assert.Equal(t, actuals[0].Name, sources[0].Name)
 
-		assert.Equal(t, source[1].Name, sources[1].Name)
+		assert.Equal(t, actuals[1].Name, sources[1].Name)
 	})
 
 	t.Run("source1件取得", func(t *testing.T) {
