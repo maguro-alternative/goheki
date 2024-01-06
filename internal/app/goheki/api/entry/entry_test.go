@@ -26,7 +26,7 @@ type Source struct {
 	Type string `db:"type" json:"type"`
 }
 
-func TestEntryHandler(t *testing.T) {
+func TestCreateEntryHandler(t *testing.T) {
 	t.Run("entry登録", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
@@ -122,7 +122,9 @@ func TestEntryHandler(t *testing.T) {
 
 		assert.Equal(t, entrys, actual)
 	})
+}
 
+func TestReadEntryHandler(t *testing.T) {
 	t.Run("entry全件取得", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
@@ -492,7 +494,9 @@ func TestEntryHandler(t *testing.T) {
 
 		assert.Equal(t, entrys, actual)
 	})
+}
 
+func TestUpdateEntryHandler(t *testing.T) {
 	t.Run("entry更新", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
@@ -653,7 +657,9 @@ func TestEntryHandler(t *testing.T) {
 
 		assert.Equal(t, updateEntrys, actual)
 	})
+}
 
+func TestDeleteEntryHandler(t *testing.T) {
 	t.Run("entry削除", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
