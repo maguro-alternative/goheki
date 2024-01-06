@@ -183,7 +183,6 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			source
 		SET
-			entry_id = :entry_id,
 			name = :name,
 			url = :url,
 			type = :type
