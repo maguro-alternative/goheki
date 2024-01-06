@@ -47,6 +47,7 @@ func main() {
 	mux.Handle("/api/entry/delete", middleChain.Then(entry.NewDeleteHandler(indexService)))
 	mux.Handle("/api/tag/create", middleChain.Then(tag.NewCreateHandler(indexService)))
 	mux.Handle("/api/tag/all-read", middleChain.Then(tag.NewAllReadHandler(indexService)))
+	mux.Handle("/api/tag/get-read", middleChain.Then(tag.NewGetReadHandler(indexService)))
 	mux.Handle("/api/tag/update", middleChain.Then(tag.NewUpdateHandler(indexService)))
 	mux.Handle("/api/tag/delete", middleChain.Then(tag.NewDeleteHandler(indexService)))
 
