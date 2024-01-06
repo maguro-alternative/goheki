@@ -1,9 +1,11 @@
 CREATE TABLE IF NOT EXISTS entry (
     id SERIAL NOT NULL PRIMARY KEY,
+    source_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     image TEXT NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (source_id) REFERENCES source (id)
 );
 /*
 出典
@@ -12,11 +14,9 @@ type 2次元 3次元
 */
 CREATE TABLE IF NOT EXISTS source (
     id SERIAL NOT NULL PRIMARY KEY,
-    entry_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     url TEXT NOT NULL,
-    type TEXT NOT NULL,
-    FOREIGN KEY (entry_id) REFERENCES entry (id)
+    type TEXT NOT NULL
 );
 /*
 タグの内容
