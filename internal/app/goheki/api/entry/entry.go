@@ -14,6 +14,7 @@ import (
 
 type Entry struct {
 	ID        *int64    `db:"id" json:"id"`
+	SourceID  int64     `db:"source_id" json:"source_id"`
 	Name      string    `db:"name" json:"name"`
 	Image     string    `db:"image" json:"image"`
 	Content   string    `db:"content" json:"content"`
@@ -45,11 +46,13 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var entrys []Entry
 	query := `
 		INSERT INTO entry (
+			source_id,
 			name,
 			image,
 			content,
 			created_at
 		) VALUES (
+			:source_id,
 			:name,
 			:image,
 			:content,
@@ -86,6 +89,7 @@ func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var entrys []Entry
 	query := `
 		SELECT
+			source_id,
 			name,
 			image,
 			content,
@@ -119,6 +123,7 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//var id ID
 	query := `
 		SELECT
+			source_id,
 			name,
 			image,
 			content,
@@ -154,6 +159,7 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	var entrys []Entry
 	query := `
 		SELECT
+			source_id,
 			name,
 			image,
 			content,
@@ -198,6 +204,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			entry
 		SET
+			source_id = :source_id,
 			name = :name,
 			image = :image,
 			content = :content,
@@ -251,7 +258,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
 	}
-	query = db.Rebind(len(delIDs.IDs),query)
+	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))

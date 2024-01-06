@@ -13,7 +13,6 @@ import (
 
 type Source struct {
 	ID      *int64 `db:"id" json:"id"`
-	EntryID int64  `db:"entry_id" json:"entry_id"`
 	Name    string `db:"name" json:"name"`
 	Url     string `db:"url" json:"url"`
 	Type    string `db:"type" json:"type"`
@@ -36,12 +35,10 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var sources []Source
 	query := `
 		INSERT INTO source (
-			entry_id,
 			name,
 			url,
 			type
 		) VALUES (
-			:entry_id,
 			:name,
 			:url,
 			:type
@@ -166,6 +163,45 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	err = h.svc.DB.SelectContext(r.Context(), &sources, query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(sources)
+}
+
+type UpdateHandler struct {
+	svc *service.IndexService
+}
+
+func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
+	return &UpdateHandler{
+		svc: svc,
+	}
+}
+
+func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		return
+	}
+	var sources []Source
+	query := `
+		UPDATE
+			source
+		SET
+			entry_id = :entry_id,
+			name = :name,
+			url = :url,
+			type = :type
+		WHERE
+			id = :id
+	`
+	err := json.NewDecoder(r.Body).Decode(&sources)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+	for _, source := range sources {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, source)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("update error: %v", err))
+		}
 	}
 	json.NewEncoder(w).Encode(sources)
 }

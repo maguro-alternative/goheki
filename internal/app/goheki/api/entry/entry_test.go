@@ -19,6 +19,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type Source struct {
+	ID   *int64 `db:"id" json:"id"`
+	Name string `db:"name" json:"name"`
+	Url  string `db:"url" json:"url"`
+	Type string `db:"type" json:"type"`
+}
+
 func TestEntryHandler(t *testing.T) {
 	t.Run("entry登録", func(t *testing.T) {
 		ctx := context.Background()
@@ -32,15 +39,53 @@ func TestEntryHandler(t *testing.T) {
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+		var ids []int64
 		// テストデータの準備
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		sources := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
+			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
 		entry := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
@@ -214,7 +259,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewGetReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/get-read?id=%d",ids[0]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/get-read?id=%d", ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -300,7 +345,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewMultipleReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/multiple-read?id=%d&id=%d",ids[0], ids[1]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/multiple-read?id=%d&id=%d", ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

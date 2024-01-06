@@ -21,6 +21,7 @@ import (
 
 type Entry struct {
 	ID        *int64    `db:"id" json:"id"`
+	SourceID  int64     `db:"source_id" json:"source_id"`
 	Name      string    `db:"name" json:"name"`
 	Image     string    `db:"image" json:"image"`
 	Content   string    `db:"content" json:"content"`
@@ -39,65 +40,20 @@ func TestSourceHandler(t *testing.T) {
 		// トランザクションの開始
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
-		var ids []int64
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+
 		// テストデータの準備
-		entrys := []Entry{
-			{
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-
-		query := `
-			INSERT INTO entry (
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				entry
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
 		source := []Source{
 			{
-				EntryID: ids[0],
-				Name:    "テストソース1",
-				Url:     "https://example.com/image1.png",
-				Type:    "anime",
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
 			},
 			{
-				EntryID: ids[1],
-				Name:    "テストソース2",
-				Url:     "https://example.com/image2.png",
-				Type:    "game",
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
 			},
 		}
-
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -140,14 +96,54 @@ func TestSourceHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
+		source := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+
 		entrys := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
@@ -155,13 +151,15 @@ func TestSourceHandler(t *testing.T) {
 			},
 		}
 
-		query := `
+		query = `
 			INSERT INTO entry (
+				source_id,
 				name,
 				image,
 				content,
 				created_at
 			) VALUES (
+				:source_id,
 				:name,
 				:image,
 				:content,
@@ -170,47 +168,6 @@ func TestSourceHandler(t *testing.T) {
 		`
 		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				entry
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
-		source := []Source{
-			{
-				EntryID: ids[0],
-				Name:    "テストソース1",
-				Url:     "https://example.com/image1.png",
-				Type:    "anime",
-			},
-			{
-				EntryID: ids[1],
-				Name:    "テストソース2",
-				Url:     "https://example.com/image2.png",
-				Type:    "game",
-			},
-		}
-
-		query = `
-			INSERT INTO source (
-				entry_id,
-				name,
-				url,
-				type
-			) VALUES (
-				:entry_id,
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
 			assert.NoError(t, err)
 		}
 
@@ -254,14 +211,52 @@ func TestSourceHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
+		source := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
 		entrys := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
@@ -269,13 +264,15 @@ func TestSourceHandler(t *testing.T) {
 			},
 		}
 
-		query := `
+		query = `
 			INSERT INTO entry (
+				source_id,
 				name,
 				image,
 				content,
 				created_at
 			) VALUES (
+				:source_id,
 				:name,
 				:image,
 				:content,
@@ -284,47 +281,6 @@ func TestSourceHandler(t *testing.T) {
 		`
 		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				entry
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
-		source := []Source{
-			{
-				EntryID: ids[0],
-				Name:    "テストソース1",
-				Url:     "https://example.com/image1.png",
-				Type:    "anime",
-			},
-			{
-				EntryID: ids[1],
-				Name:    "テストソース2",
-				Url:     "https://example.com/image2.png",
-				Type:    "game",
-			},
-		}
-
-		query = `
-			INSERT INTO source (
-				entry_id,
-				name,
-				url,
-				type
-			) VALUES (
-				:entry_id,
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
 			assert.NoError(t, err)
 		}
 
@@ -366,36 +322,32 @@ func TestSourceHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		entrys := []Entry{
+		source := []Source{
 			{
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
 			},
 			{
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
 			},
 		}
 
 		query := `
-			INSERT INTO entry (
+			INSERT INTO source (
 				name,
-				image,
-				content,
-				created_at
+				url,
+				type
 			) VALUES (
 				:name,
-				:image,
-				:content,
-				:created_at
+				:url,
+				:type
 			)
 		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
 			assert.NoError(t, err)
 		}
 		query = `
@@ -407,36 +359,40 @@ func TestSourceHandler(t *testing.T) {
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
 
-		source := []Source{
+		entrys := []Entry{
 			{
-				EntryID: ids[0],
-				Name:    "テストソース1",
-				Url:     "https://example.com/image1.png",
-				Type:    "anime",
+				SourceID:  ids[0],
+				Name:      "テストエントリ1",
+				Image:     "https://example.com/image1.png",
+				Content:   "テスト内容1",
+				CreatedAt: fixedTime,
 			},
 			{
-				EntryID: ids[1],
-				Name:    "テストソース2",
-				Url:     "https://example.com/image2.png",
-				Type:    "game",
+				SourceID:  ids[1],
+				Name:      "テストエントリ2",
+				Image:     "https://example.com/image2.png",
+				Content:   "テスト内容2",
+				CreatedAt: fixedTime,
 			},
 		}
 
 		query = `
-			INSERT INTO source (
-				entry_id,
+			INSERT INTO entry (
+				source_id,
 				name,
-				url,
-				type
+				image,
+				content,
+				created_at
 			) VALUES (
-				:entry_id,
+				:source_id,
 				:name,
-				:url,
-				:type
+				:image,
+				:content,
+				:created_at
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, entry := range entrys {
+			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
 		}
 
@@ -464,5 +420,131 @@ func TestSourceHandler(t *testing.T) {
 		assert.Equal(t, source[0].Name, sources[0].Name)
 
 		assert.Equal(t, source[1].Name, sources[1].Name)
+	})
+
+	t.Run("source更新", func(t *testing.T) {
+		ctx := context.Background()
+		env, err := envconfig.NewEnv()
+		assert.NoError(t, err)
+		// データベースに接続
+		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+		assert.NoError(t, err)
+		defer cleanup()
+		// トランザクションの開始
+		tx, err := indexDB.BeginTxx(ctx, nil)
+		assert.NoError(t, err)
+		var ids []int64
+		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+		// テストデータの準備
+		source := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+		updateSource := []Source{
+			{
+				Name: "テストソース1更新",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2更新",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+		entrys := []Entry{
+			{
+				SourceID:  ids[0],
+				Name:      "テストエントリ1",
+				Image:     "https://example.com/image1.png",
+				Content:   "テスト内容1",
+				CreatedAt: fixedTime,
+			},
+			{
+				SourceID:  ids[1],
+				Name:      "テストエントリ2",
+				Image:     "https://example.com/image2.png",
+				Content:   "テスト内容2",
+				CreatedAt: fixedTime,
+			},
+		}
+
+		query = `
+			INSERT INTO entry (
+				source_id,
+				name,
+				image,
+				content,
+				created_at
+			) VALUES (
+				:source_id,
+				:name,
+				:image,
+				:content,
+				:created_at
+			)
+		`
+		for _, entry := range entrys {
+			_, err = tx.NamedExecContext(ctx, query, entry)
+			assert.NoError(t, err)
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewUpdateHandler(indexService)
+		eJson, err := json.Marshal(&updateSource)
+		req, err := http.NewRequest(http.MethodPost, "/api/source/update", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var sources []Source
+		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		assert.NoError(t, err)
+
+		assert.Equal(t, updateSource[0].Name, sources[0].Name)
+
+		assert.Equal(t, updateSource[1].Name, sources[1].Name)
 	})
 }
