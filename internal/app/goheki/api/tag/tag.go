@@ -131,7 +131,7 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var tags []Tag
-	var ids IDs
+	var ids []string
 	query := `
 		SELECT
 			id,
@@ -141,11 +141,18 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		WHERE
 			id IN (?)
 	`
-	query, args, err := db.In(query, ids.IDs)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), ids.IDs)
+	queryIDs, ok := r.URL.Query()["id"]
+	if !ok {
+		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
 	}
-	query = db.Rebind(len(ids.IDs), query)
+	for _, id := range queryIDs {
+		ids = append(ids, id)
+	}
+	query, args, err := db.In(query, ids)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), ids)
+	}
+	query = db.Rebind(len(ids), query)
 	err = h.svc.DB.SelectContext(r.Context(), &tags, query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
