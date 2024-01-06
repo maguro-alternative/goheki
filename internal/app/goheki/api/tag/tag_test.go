@@ -190,7 +190,7 @@ func TestTagHandler(t *testing.T) {
 		assert.Equal(t, tag[0].Name, tags.Name)
 	})
 
-	t.Run("tag全件取得", func(t *testing.T) {
+	t.Run("tag2件取得", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
 		assert.NoError(t, err)
