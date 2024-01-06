@@ -76,7 +76,7 @@ func TestEntryHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
-		entry := []Entry{
+		entrys := []Entry{
 			{
 				SourceID:  ids[0],
 				Name:      "テストエントリ1",
@@ -100,7 +100,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewCreateHandler(indexService)
-		eJson, err := json.Marshal(&entry)
+		eJson, err := json.Marshal(&entrys)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -120,7 +120,7 @@ func TestEntryHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, entrys, actual)
 	})
 
 	t.Run("entry全件取得", func(t *testing.T) {
@@ -137,7 +137,7 @@ func TestEntryHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -161,8 +161,8 @@ func TestEntryHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 
@@ -174,7 +174,7 @@ func TestEntryHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
-		entry := []Entry{
+		entrys := []Entry{
 			{
 				SourceID:  ids[0],
 				Name:      "テストエントリ1",
@@ -205,7 +205,7 @@ func TestEntryHandler(t *testing.T) {
 				:created_at
 			)
 		`
-		for _, entry := range entry {
+		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
 		}
@@ -216,7 +216,7 @@ func TestEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewAllReadHandler(indexService)
-		eJson, err := json.Marshal(&entry)
+		eJson, err := json.Marshal(&entrys)
 		req, err := http.NewRequest(http.MethodGet, "/api/entry/all-read", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -238,7 +238,7 @@ func TestEntryHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, entrys, actual)
 	})
 
 	t.Run("entry1件取得", func(t *testing.T) {
@@ -255,7 +255,7 @@ func TestEntryHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -279,8 +279,8 @@ func TestEntryHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 
@@ -292,7 +292,7 @@ func TestEntryHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
-		entry := []Entry{
+		entrys := []Entry{
 			{
 				SourceID:  ids[0],
 				Name:      "テストエントリ1",
@@ -323,7 +323,7 @@ func TestEntryHandler(t *testing.T) {
 				:created_at
 			)
 		`
-		for _, entry := range entry {
+		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
 		}
@@ -363,7 +363,7 @@ func TestEntryHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry[0], actual)
+		assert.Equal(t, entrys[0], actual)
 	})
 
 	t.Run("entry2件取得", func(t *testing.T) {
@@ -381,7 +381,7 @@ func TestEntryHandler(t *testing.T) {
 		var idsJson IDs
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -405,8 +405,8 @@ func TestEntryHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 
@@ -418,7 +418,7 @@ func TestEntryHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
-		entry := []Entry{
+		entrys := []Entry{
 			{
 				SourceID:  ids[0],
 				Name:      "テストエントリ1",
@@ -449,7 +449,7 @@ func TestEntryHandler(t *testing.T) {
 				:created_at
 			)
 		`
-		for _, entry := range entry {
+		for _, entry := range entrys {
 			_, err = tx.NamedExecContext(ctx, query, entry)
 			assert.NoError(t, err)
 		}
@@ -490,7 +490,7 @@ func TestEntryHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entry, actual)
+		assert.Equal(t, entrys, actual)
 	})
 
 	t.Run("entry更新", func(t *testing.T) {
@@ -507,7 +507,7 @@ func TestEntryHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -531,8 +531,8 @@ func TestEntryHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 
@@ -665,29 +665,71 @@ func TestEntryHandler(t *testing.T) {
 		// トランザクションの開始
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
+		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
+		sources := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
+			assert.NoError(t, err)
+		}
+
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
 		entry := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
 				CreatedAt: fixedTime,
 			},
 		}
-		query := `
+		query = `
 			INSERT INTO entry (
+				source_id,
 				name,
 				image,
 				content,
 				created_at
 			) VALUES (
+				:source_id,
 				:name,
 				:image,
 				:content,
@@ -704,7 +746,6 @@ func TestEntryHandler(t *testing.T) {
 			FROM
 				entry
 		`
-		var ids []int64
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
 		delIDs := IDs{IDs: ids}
