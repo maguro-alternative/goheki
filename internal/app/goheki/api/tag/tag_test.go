@@ -105,8 +105,8 @@ func TestTagHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewAllReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, "/api/tag/all-read", nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, "/api/tag/read", nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -172,8 +172,8 @@ func TestTagHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewGetReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/get-read?id=%d",ids[0]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d",ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -183,11 +183,11 @@ func TestTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var tags Tag
-		err = json.NewDecoder(w.Body).Decode(&tags)
+		var actuals []Tag
+		err = json.NewDecoder(w.Body).Decode(&actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, tags.Name)
+		assert.Equal(t, tag[0].Name, actuals[0].Name)
 	})
 
 	t.Run("tag2件取得", func(t *testing.T) {
@@ -238,8 +238,8 @@ func TestTagHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewMultipleReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/multiple-read?id=%d&id=%d", ids[0], ids[1]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d&id=%d", ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -365,7 +365,7 @@ func TestTagHandler(t *testing.T) {
 		`
 		err = tx.SelectContext(ctx, &ids, selectQuery)
 		assert.NoError(t, err)
-		delIDs := IDs{IDs: ids}
+		delIDs := IDs{IDs: []int64{ids[0]}}
 
 		var indexService = service.NewIndexService(
 			tx,

@@ -55,78 +55,17 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tags)
 }
 
-type AllReadHandler struct {
+type ReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewAllReadHandler(svc *service.IndexService) *AllReadHandler {
-	return &AllReadHandler{
+func NewReadHandler(svc *service.IndexService) *ReadHandler {
+	return &ReadHandler{
 		svc: svc,
 	}
 }
 
-func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		return
-	}
-	var tags []Tag
-	query := `
-		SELECT
-			id,
-			name
-		FROM
-			tag
-	`
-	err := h.svc.DB.SelectContext(r.Context(), &tags, query)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("select error: %v", err))
-	}
-	json.NewEncoder(w).Encode(tags)
-}
-
-type GetReadHandler struct {
-	svc *service.IndexService
-}
-
-func NewGetReadHandler(svc *service.IndexService) *GetReadHandler {
-	return &GetReadHandler{
-		svc: svc,
-	}
-}
-
-func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		return
-	}
-	var tag Tag
-	query := `
-		SELECT
-			id,
-			name
-		FROM
-			tag
-		WHERE
-			id = $1
-	`
-	id := r.URL.Query().Get("id")
-	err := h.svc.DB.GetContext(r.Context(), &tag, query, id)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("select error: %v", err))
-	}
-	json.NewEncoder(w).Encode(tag)
-}
-
-type MultipleReadHandler struct {
-	svc *service.IndexService
-}
-
-func NewMultipleReadHandler(svc *service.IndexService) *MultipleReadHandler {
-	return &MultipleReadHandler{
-		svc: svc,
-	}
-}
-
-func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
@@ -142,7 +81,35 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	`
 	queryIDs, ok := r.URL.Query()["id"]
 	if !ok {
-		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
+		query = `
+			SELECT
+				id,
+				name
+			FROM
+				tag
+		`
+		err := h.svc.DB.SelectContext(r.Context(), &tags, query)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("select error: %v", err))
+		}
+		json.NewEncoder(w).Encode(&tags)
+		return
+	} else if len(queryIDs) == 1 {
+		query = `
+			SELECT
+				id,
+				name
+			FROM
+				tag
+			WHERE
+				id = $1
+		`
+		err := h.svc.DB.SelectContext(r.Context(), &tags, query, queryIDs[0])
+		if err != nil {
+			log.Fatal(fmt.Sprintf("select error: %v", err))
+		}
+		json.NewEncoder(w).Encode(&tags)
+		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
