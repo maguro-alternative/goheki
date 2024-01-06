@@ -152,7 +152,6 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var entrys []Entry
-	var ids []string
 	query := `
 		SELECT
 			name,
@@ -168,17 +167,14 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
 	}
-	for _, id := range queryIDs {
-		ids = append(ids, id)
-	}
-	query, args, err := db.In(query, ids)
+	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), ids)
+		log.Fatal(fmt.Sprintf("in error: %v", err), queryIDs)
 	}
-	query = db.Rebind(len(ids), query)
+	query = db.Rebind(len(queryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &entrys, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v\nid:%v", err, query, ids))
+		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v\nid:%v", err, query, queryIDs))
 	}
 	json.NewEncoder(w).Encode(&entrys)
 }
