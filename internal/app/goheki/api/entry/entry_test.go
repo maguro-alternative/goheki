@@ -381,27 +381,68 @@ func TestEntryHandler(t *testing.T) {
 		var idsJson IDs
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
+		source := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
 		entry := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
 				CreatedAt: fixedTime,
 			},
 		}
-		query := `
+		query = `
 			INSERT INTO entry (
+				source_id,
 				name,
 				image,
 				content,
 				created_at
 			) VALUES (
+				:source_id,
 				:name,
 				:image,
 				:content,
