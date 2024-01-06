@@ -277,6 +277,14 @@ func TestTagHandler(t *testing.T) {
 				Name: "テストタグ2",
 			},
 		}
+		updateTag := []Tag{
+			{
+				Name: "テストタグ3",
+			},
+			{
+				Name: "テストタグ4",
+			},
+		}
 
 		query := `
 			INSERT INTO tag (
@@ -297,7 +305,7 @@ func TestTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewUpdateHandler(indexService)
-		eJson, err := json.Marshal(&tag)
+		eJson, err := json.Marshal(&updateTag)
 		req, err := http.NewRequest(http.MethodPut, "/api/tag/update", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -312,8 +320,8 @@ func TestTagHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, tags[0].Name)
-		assert.Equal(t, tag[1].Name, tags[1].Name)
+		assert.Equal(t, updateTag[0].Name, tags[0].Name)
+		assert.Equal(t, updateTag[1].Name, tags[1].Name)
 	})
 
 	t.Run("tag削除", func(t *testing.T) {
