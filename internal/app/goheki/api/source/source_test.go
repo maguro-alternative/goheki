@@ -124,4 +124,118 @@ func TestSourceHandler(t *testing.T) {
 
 		assert.Equal(t, source[1].Name, sources[1].Name)
 	})
+
+	t.Run("source全件取得", func(t *testing.T) {
+		ctx := context.Background()
+		env, err := envconfig.NewEnv()
+		assert.NoError(t, err)
+		// データベースに接続
+		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+		assert.NoError(t, err)
+		defer cleanup()
+		// トランザクションの開始
+		tx, err := indexDB.BeginTxx(ctx, nil)
+		assert.NoError(t, err)
+		var ids []int64
+		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+		// テストデータの準備
+		entrys := []Entry{
+			{
+				Name:      "テストエントリ1",
+				Image:     "https://example.com/image1.png",
+				Content:   "テスト内容1",
+				CreatedAt: fixedTime,
+			},
+			{
+				Name:      "テストエントリ2",
+				Image:     "https://example.com/image2.png",
+				Content:   "テスト内容2",
+				CreatedAt: fixedTime,
+			},
+		}
+
+		query := `
+			INSERT INTO entry (
+				name,
+				image,
+				content,
+				created_at
+			) VALUES (
+				:name,
+				:image,
+				:content,
+				:created_at
+			)
+		`
+		for _, entry := range entrys {
+			_, err = tx.NamedExecContext(ctx, query, entry)
+			assert.NoError(t, err)
+		}
+		query = `
+			SELECT
+				id
+			FROM
+				entry
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+
+		source := []Source{
+			{
+				EntryID: ids[0],
+				Name:    "テストソース1",
+				Url:     "https://example.com/image1.png",
+				Type:    "anime",
+			},
+			{
+				EntryID: ids[1],
+				Name:    "テストソース2",
+				Url:     "https://example.com/image2.png",
+				Type:    "game",
+			},
+		}
+
+		query = `
+			INSERT INTO source (
+				entry_id,
+				name,
+				url,
+				type
+			) VALUES (
+				:entry_id,
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewAllReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, "/api/source/all-read", nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var sources []Source
+		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		assert.NoError(t, err)
+
+		assert.Equal(t, source[0].Name, sources[0].Name)
+
+		assert.Equal(t, source[1].Name, sources[1].Name)
+	})
 }
