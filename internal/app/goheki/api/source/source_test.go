@@ -164,7 +164,7 @@ func TestSourceHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -188,8 +188,8 @@ func TestSourceHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 		query = `
@@ -244,7 +244,7 @@ func TestSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewGetReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/get-read?entry_id=%d", ids[0]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/get-read?id=%d", ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -254,11 +254,11 @@ func TestSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var sources Source
-		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		var actual Source
+		err = json.Unmarshal(w.Body.Bytes(), &actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, source[0].Name, sources.Name)
+		assert.Equal(t, sources[0].Name, actual.Name)
 	})
 
 	t.Run("source2件取得", func(t *testing.T) {
