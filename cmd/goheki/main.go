@@ -10,12 +10,16 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 
+	_ "embed"
 	"context"
 	"log"
 	"net/http"
 
 	"github.com/justinas/alice"
 )
+
+//go:embed schema.sql
+var schema string // schema.sqlの内容をschemaに代入
 
 func main() {
 	ctx := context.Background()
@@ -28,6 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// テーブルの作成
+	if _, err := indexDB.ExecContext(ctx, schema); err != nil {
+		log.Fatal(err)
+	}
+
 	defer cleanup()
 	var indexService = service.NewIndexService(
 		indexDB,

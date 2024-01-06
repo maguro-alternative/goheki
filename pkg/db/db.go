@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	_ "embed"
 	"fmt"
 	"time"
 
@@ -13,9 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-//go:embed schema.sql
-var schema string // schema.sqlの内容をschemaに代入
 
 var db *sqlx.DB // DBは*sql.DB型の変数、グローバル変数
 
@@ -45,10 +41,6 @@ func NewSqliteDB(path string) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	if _, err := db.Exec(schema); err != nil {
-		return nil, err
-	}
-
 	return db, nil
 }
 
@@ -56,11 +48,6 @@ func NewPostgresDB(path string) (*sqlx.DB, error) {
 	// データベースに接続
 	db, err := sqlx.Open("postgres", path)
 	if err != nil {
-		return nil, err
-	}
-
-	// テーブルの作成
-	if _, err := db.Exec(schema); err != nil {
 		return nil, err
 	}
 
