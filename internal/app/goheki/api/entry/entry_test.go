@@ -215,9 +215,9 @@ func TestEntryHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewAllReadHandler(indexService)
+		h := NewReadHandler(indexService)
 		eJson, err := json.Marshal(&entrys)
-		req, err := http.NewRequest(http.MethodGet, "/api/entry/all-read", bytes.NewBuffer(eJson))
+		req, err := http.NewRequest(http.MethodGet, "/api/entry/read", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -341,8 +341,8 @@ func TestEntryHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewGetReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/get-read?id=%d", ids[0]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -359,11 +359,11 @@ func TestEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual Entry
+		var actual []Entry
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entrys[0], actual)
+		assert.Equal(t, entrys[0], actual[0])
 	})
 
 	t.Run("entry2件取得", func(t *testing.T) {
@@ -468,8 +468,8 @@ func TestEntryHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewMultipleReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/multiple-read?id=%d&id=%d", ids[0], ids[1]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()

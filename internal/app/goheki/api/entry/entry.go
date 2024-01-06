@@ -120,7 +120,6 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var entry Entry
-	//var id ID
 	query := `
 		SELECT
 			source_id,
@@ -142,17 +141,17 @@ func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&entry)
 }
 
-type MultipleReadHandler struct {
+type ReadHandler struct {
 	svc *service.IndexService
 }
 
-func NewMultipleReadHandler(svc *service.IndexService) *MultipleReadHandler {
-	return &MultipleReadHandler{
+func NewReadHandler(svc *service.IndexService) *ReadHandler {
+	return &ReadHandler{
 		svc: svc,
 	}
 }
 
-func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
@@ -186,6 +185,7 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 		}
 		json.NewEncoder(w).Encode(&entrys)
+		return
 	} else if len(queryIDs) == 1 {
 		query = `
 			SELECT
@@ -199,11 +199,12 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
+		err := h.svc.DB.SelectContext(r.Context(), &entrys, query, queryIDs[0])
 		if err != nil {
 			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
 		}
 		json.NewEncoder(w).Encode(&entrys)
+		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
