@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
-	//"github.com/maguro-alternative/goheki/pkg/db"
+	"github.com/maguro-alternative/goheki/pkg/db"
 
 	"encoding/json"
 	"net/http"
@@ -158,7 +158,12 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
 	}
-	err := h.svc.DB.SelectContext(r.Context(), &sources, query, entryIDs)
+	query, args, err := db.In(query, entryIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), entryIDs)
+	}
+	query = db.Rebind(len(entryIDs), query)
+	err = h.svc.DB.SelectContext(r.Context(), &sources, query, args...)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
 	}
