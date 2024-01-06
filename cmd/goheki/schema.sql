@@ -1,12 +1,3 @@
-CREATE TABLE IF NOT EXISTS entry (
-    id SERIAL NOT NULL PRIMARY KEY,
-    source_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    image TEXT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (source_id) REFERENCES source (id)
-);
 /*
 出典
 
@@ -17,6 +8,18 @@ CREATE TABLE IF NOT EXISTS source (
     name TEXT NOT NULL,
     url TEXT NOT NULL,
     type TEXT NOT NULL
+);
+/*
+人物の内容
+*/
+CREATE TABLE IF NOT EXISTS entry (
+    id SERIAL NOT NULL PRIMARY KEY,
+    source_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    image TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (source_id) REFERENCES source (id)
 );
 /*
 タグの内容
