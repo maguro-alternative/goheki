@@ -504,16 +504,72 @@ func TestEntryHandler(t *testing.T) {
 		// トランザクションの開始
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
+		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
+		source := []Source{
+			{
+				Name: "テストソース1",
+				Url:  "https://example.com/image1.png",
+				Type: "anime",
+			},
+			{
+				Name: "テストソース2",
+				Url:  "https://example.com/image2.png",
+				Type: "game",
+			},
+		}
+
+		query := `
+			INSERT INTO source (
+				name,
+				url,
+				type
+			) VALUES (
+				:name,
+				:url,
+				:type
+			)
+		`
+		for _, s := range source {
+			_, err = tx.NamedExecContext(ctx, query, s)
+			assert.NoError(t, err)
+		}
+
+		query = `
+			SELECT
+				id
+			FROM
+				source
+		`
+		err = tx.SelectContext(ctx, &ids, query)
+		assert.NoError(t, err)
+
+		query = `
+			INSERT INTO entry (
+				source_id,
+				name,
+				image,
+				content,
+				created_at
+			) VALUES (
+				:source_id,
+				:name,
+				:image,
+				:content,
+				:created_at
+			)
+		`
 		entrys := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ1",
 				Image:     "https://example.com/image1.png",
 				Content:   "テスト内容1",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ2",
 				Image:     "https://example.com/image2.png",
 				Content:   "テスト内容2",
@@ -522,25 +578,29 @@ func TestEntryHandler(t *testing.T) {
 		}
 		updateEntrys := []Entry{
 			{
+				SourceID:  ids[0],
 				Name:      "テストエントリ3",
 				Image:     "https://example.com/image3.png",
 				Content:   "テスト内容3",
 				CreatedAt: fixedTime,
 			},
 			{
+				SourceID:  ids[1],
 				Name:      "テストエントリ4",
 				Image:     "https://example.com/image4.png",
 				Content:   "テスト内容4",
 				CreatedAt: fixedTime,
 			},
 		}
-		query := `
+		query = `
 			INSERT INTO entry (
+				source_id,
 				name,
 				image,
 				content,
 				created_at
 			) VALUES (
+				:source_id,
 				:name,
 				:image,
 				:content,
@@ -557,7 +617,6 @@ func TestEntryHandler(t *testing.T) {
 			FROM
 				entry
 		`
-		var ids []int64
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
 		for i, id := range ids {
