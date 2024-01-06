@@ -146,9 +146,9 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		FROM
 			source
 		WHERE
-			entry_id IN (?)
+			id IN (?)
 	`
-	entryIDs, ok := r.URL.Query()["entry_id"]
+	entryIDs, ok := r.URL.Query()["id"]
 	if !ok {
 		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
 	}

@@ -275,7 +275,7 @@ func TestSourceHandler(t *testing.T) {
 		var ids []int64
 		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 		// テストデータの準備
-		source := []Source{
+		sources := []Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -299,15 +299,15 @@ func TestSourceHandler(t *testing.T) {
 				:type
 			)
 		`
-		for _, s := range source {
-			_, err = tx.NamedExecContext(ctx, query, s)
+		for _, source := range sources {
+			_, err = tx.NamedExecContext(ctx, query, source)
 			assert.NoError(t, err)
 		}
 		query = `
 			SELECT
 				id
 			FROM
-				entry
+				source
 		`
 		err = tx.SelectContext(ctx, &ids, query)
 		assert.NoError(t, err)
@@ -356,7 +356,7 @@ func TestSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewMultipleReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/multiple-read?entry_id=%d&entry_id=%d", ids[0], ids[1]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/multiple-read?id=%d&id=%d", ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -366,13 +366,13 @@ func TestSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var sources []Source
-		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		var actuals []Source
+		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, source[0].Name, sources[0].Name)
+		assert.Equal(t, sources[0].Name, actuals[0].Name)
 
-		assert.Equal(t, source[1].Name, sources[1].Name)
+		assert.Equal(t, sources[1].Name, actuals[1].Name)
 	})
 
 	t.Run("source更新", func(t *testing.T) {
