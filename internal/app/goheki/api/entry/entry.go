@@ -171,7 +171,39 @@ func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	`
 	queryIDs, ok := r.URL.Query()["id"]
 	if !ok {
-		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
+		query = `
+			SELECT
+				source_id,
+				name,
+				image,
+				content,
+				created_at
+			FROM
+				entry
+		`
+		err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		}
+		json.NewEncoder(w).Encode(&entrys)
+	} else if len(queryIDs) == 1 {
+		query = `
+			SELECT
+				source_id,
+				name,
+				image,
+				content,
+				created_at
+			FROM
+				entry
+			WHERE
+				id = $1
+		`
+		err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		}
+		json.NewEncoder(w).Encode(&entrys)
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
@@ -253,6 +285,22 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+	}
+	if len(delIDs.IDs) == 0 {
+		return
+	} else if len(delIDs.IDs) == 1 {
+		query = `
+			DELETE FROM
+				entry
+			WHERE
+				id = $1
+		`
+		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		}
+		json.NewEncoder(w).Encode(&delIDs)
+		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
