@@ -60,3 +60,107 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(sources)
 }
 
+type AllReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewAllReadHandler(svc *service.IndexService) *AllReadHandler {
+	return &AllReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *AllReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var sources []Source
+	query := `
+		SELECT
+			id,
+			entry_id,
+			name,
+			url,
+			type
+		FROM
+			source
+	`
+	err := h.svc.DB.SelectContext(r.Context(), &sources, query)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(sources)
+}
+
+type GetReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewGetReadHandler(svc *service.IndexService) *GetReadHandler {
+	return &GetReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *GetReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var sources Source
+	query := `
+		SELECT
+			id,
+			entry_id,
+			name,
+			url,
+			type
+		FROM
+			source
+		WHERE
+			entry_id = $1
+	`
+	entryID := r.URL.Query().Get("entry_id")
+	err := h.svc.DB.GetContext(r.Context(), &sources, query, entryID)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(sources)
+}
+
+type MultipleReadHandler struct {
+	svc *service.IndexService
+}
+
+func NewMultipleReadHandler(svc *service.IndexService) *MultipleReadHandler {
+	return &MultipleReadHandler{
+		svc: svc,
+	}
+}
+
+func (h *MultipleReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	var sources []Source
+	query := `
+		SELECT
+			id,
+			entry_id,
+			name,
+			url,
+			type
+		FROM
+			source
+		WHERE
+			entry_id IN (?)
+	`
+	entryIDs, ok := r.URL.Query()["entry_id"]
+	if !ok {
+		log.Fatal(fmt.Sprintf("id not found: %v", r.URL.Query()))
+	}
+	err := h.svc.DB.SelectContext(r.Context(), &sources, query, entryIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("select error: %v", err))
+	}
+	json.NewEncoder(w).Encode(sources)
+}
