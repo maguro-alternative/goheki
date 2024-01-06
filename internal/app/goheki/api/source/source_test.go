@@ -28,7 +28,7 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
-func TestSourceHandler(t *testing.T) {
+func TestCreateSourceHandler(t *testing.T) {
 	t.Run("source登録", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
