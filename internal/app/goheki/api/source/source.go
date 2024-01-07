@@ -200,6 +200,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("delete error: %v", err))
 		}
+		json.NewEncoder(w).Encode(&delIDs)
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
