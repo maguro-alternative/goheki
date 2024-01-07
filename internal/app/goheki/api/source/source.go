@@ -176,22 +176,40 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		return
 	}
-	var sources []Source
+	var delIDs IDs
 	query := `
 		DELETE FROM
 			source
 		WHERE
-			id = :id
+			id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&sources)
+	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	for _, source := range sources {
-		_, err = h.svc.DB.NamedExecContext(r.Context(), query, source)
+	if len(delIDs.IDs) == 0 {
+		return
+	} else if len(delIDs.IDs) == 1 {
+		query = `
+			DELETE FROM
+				source
+			WHERE
+				id = $1
+		`
+		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
 			log.Fatal(fmt.Sprintf("delete error: %v", err))
 		}
+		return
 	}
-	json.NewEncoder(w).Encode(sources)
+	query, args, err := db.In(query, delIDs.IDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
+	}
+	query = db.Rebind(len(delIDs.IDs), query)
+	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("delete error: %v", err))
+	}
+	json.NewEncoder(w).Encode(&delIDs)
 }
