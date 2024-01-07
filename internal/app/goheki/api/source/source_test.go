@@ -81,7 +81,9 @@ func TestCreateSourceHandler(t *testing.T) {
 
 		assert.Equal(t, actuals[1].Name, sources[1].Name)
 	})
+}
 
+func TestReadSourceHandler(t *testing.T) {
 	t.Run("source全件取得", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
@@ -374,7 +376,9 @@ func TestCreateSourceHandler(t *testing.T) {
 
 		assert.Equal(t, sources[1].Name, actuals[1].Name)
 	})
+}
 
+func TestUpdateSourceHandler(t *testing.T) {
 	t.Run("source更新", func(t *testing.T) {
 		ctx := context.Background()
 		env, err := envconfig.NewEnv()
@@ -501,3 +505,5 @@ func TestCreateSourceHandler(t *testing.T) {
 		assert.Equal(t, updateSource[1].Name, actuals[1].Name)
 	})
 }
+
+func TestDeleteSourceHandler(t *testing.T) {}
