@@ -6,3 +6,7 @@ type Source struct {
 	Url     string `db:"url" json:"url"`
 	Type    string `db:"type" json:"type"`
 }
+
+type IDs struct {
+	IDs []int64 `json:"ids"`
+}
