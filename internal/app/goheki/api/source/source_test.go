@@ -132,8 +132,8 @@ func TestReadSourceHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewAllReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, "/api/source/all-read", nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, "/api/source/read", nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -245,8 +245,8 @@ func TestReadSourceHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewGetReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/get-read?id=%d", ids[0]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d", ids[0]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -256,11 +256,11 @@ func TestReadSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actual Source
-		err = json.Unmarshal(w.Body.Bytes(), &actual)
+		var actuals []Source
+		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, sources[0].Name, actual.Name)
+		assert.Equal(t, sources[0].Name, actuals[0].Name)
 	})
 
 	t.Run("source2件取得", func(t *testing.T) {
@@ -357,8 +357,8 @@ func TestReadSourceHandler(t *testing.T) {
 			env,
 		)
 		// テストの実行
-		h := NewMultipleReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/multiple-read?id=%d&id=%d", ids[0], ids[1]), nil)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d&id=%d", ids[0], ids[1]), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
