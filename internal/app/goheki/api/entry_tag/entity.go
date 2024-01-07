@@ -1,4 +1,4 @@
-package entrytag
+package entry_tag
 
 type EntryTag struct {
 	ID      *int64 `db:"id" json:"id"`
