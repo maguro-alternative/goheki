@@ -19,13 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type Source struct {
-	ID   *int64 `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
-	Url  string `db:"url" json:"url"`
-	Type string `db:"type" json:"type"`
-}
-
 func TestCreateEntryHandler(t *testing.T) {
 	t.Run("entry登録", func(t *testing.T) {
 		ctx := context.Background()
