@@ -43,7 +43,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(fmt.Sprintf("insert error: %v", err))
 		}
 	}
-	json.NewEncoder(w).Encode(tags)
+	json.NewEncoder(w).Encode(&tags)
 }
 
 type ReadHandler struct {

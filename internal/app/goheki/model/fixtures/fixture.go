@@ -7,17 +7,21 @@ import (
 )
 
 type Fixture struct {
-	db db.Driver
+	Entrys    []*Entry
+	EntryTags []*EntryTag
+	Sources   []*Source
+
+	dbv1 db.Driver
 }
 
 func Build(t *testing.T, modelConnectors ...*ModelConnector) *Fixture {
-    fixture := &Fixture{}
+	fixture := &Fixture{}
 
-    for _, modelConnector := range modelConnectors {
-        modelConnector.addToFixtureAndConnect(t, fixture)
-    }
+	for _, modelConnector := range modelConnectors {
+		modelConnector.addToFixtureAndConnect(t, fixture)
+	}
 
-    return fixture
+	return fixture
 }
 
 type ModelConnector struct {
@@ -26,6 +30,7 @@ type ModelConnector struct {
 	// 定義されるべきコールバック
 	addToFixture func(t *testing.T, f *Fixture)
 	connect      func(t *testing.T, f *Fixture, connectingModel interface{})
+	insertTable  func(t *testing.T, f *Fixture)
 
 	// 状態
 	addedToFixture bool
@@ -46,6 +51,8 @@ func (mc *ModelConnector) addToFixtureAndConnect(t *testing.T, fixture *Fixture)
 		// addToFixtureは必ずセットされている必要がある
 		t.Fatalf("addToFixture field of %T is not properly initialized", mc.Model)
 	}
+	// このモデルをfixtureに追加する
+	mc.insertTable(t, fixture)
 	mc.addToFixture(t, fixture)
 
 	for _, modelConnector := range mc.connectings {
