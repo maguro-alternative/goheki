@@ -7,9 +7,17 @@ import (
 )
 
 type Fixture struct {
-	Entrys    []*Entry
-	EntryTags []*EntryTag
-	Sources   []*Source
+	Entrys          []*Entry
+	EntryTags       []*EntryTag
+	Tags            []*Tag
+	Sources         []*Source
+	BWHs            []*BWH
+	HekiRadarCharts []*HekiRadarChart
+	HairLengths     []*HairLength
+	HairColors      []*HairColor
+	HairStyles      []*HairStyle
+	Personalitys    []*Personality
+	Links           []*Link
 
 	dbv1 db.Driver
 }
