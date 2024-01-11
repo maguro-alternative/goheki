@@ -14,13 +14,15 @@ type Link struct {
 	Darkness bool   `db:"darkness"`
 }
 
-func NewLink(ctx context.Context) *ModelConnector {
+func NewLink(ctx context.Context, setter func(l *Link)) *ModelConnector {
 	link := &Link{
 		Type:     "blog",
 		URL:      "https://example.com",
 		Nsfw:     false,
 		Darkness: false,
 	}
+
+	setter(link)
 
 	return &ModelConnector{
 		Model: link,
@@ -37,17 +39,31 @@ func NewLink(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO link (entry_id, type, url, nsfw, darkness) VALUES (:entry_id, :type, :url, :nsfw, :darkness)", link)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
 			// 連番されるIDをセットする
-			link.ID = &id
+			result := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO link (
+					entry_id,
+					type,
+					url,
+					nsfw,
+					darkness
+				) VALUES (
+					$1,
+					$2,
+					$3,
+					$4,
+					$5
+				)`,
+				link.EntryID,
+				link.Type,
+				link.URL,
+				link.Nsfw,
+				link.Darkness,
+			).Scan(&link.ID)
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
+			}
 		},
 	}
 }
