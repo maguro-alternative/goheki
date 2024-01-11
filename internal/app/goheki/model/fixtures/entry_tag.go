@@ -32,7 +32,7 @@ func NewEntryTag(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO entry_tag (entry_id, tag_id) VALUES (:entry_id, :tag_id)", entryTag)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO entry_tag (entry_id, tag_id) VALUES (:entry_id, :tag_id)", entryTag)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
