@@ -11,11 +11,13 @@ type HekiRadarChart struct {
 	NU      int64  `db:"nu"`
 }
 
-func NewHekiRadarChart(ctx context.Context) *ModelConnector {
+func NewHekiRadarChart(ctx context.Context, setter func(h *HekiRadarChart)) *ModelConnector {
 	hekiRadarChart := &HekiRadarChart{
 		AI: 1,
 		NU: 1,
 	}
+
+	setter(hekiRadarChart)
 
 	return &ModelConnector{
 		Model: hekiRadarChart,
@@ -32,17 +34,25 @@ func NewHekiRadarChart(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO heki_radar_chart (entry_id, ai, nu) VALUES (:entry_id, :ai, :nu)", hekiRadarChart)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
 			// 連番されるIDをセットする
-			hekiRadarChart.EntryID = &id
+			result := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO heki_radar_chart (
+					entry_id,
+					ai,
+					nu
+				) VALUES (
+					$1,
+					$2,
+					$3
+				)`,
+				hekiRadarChart.EntryID,
+				hekiRadarChart.AI,
+				hekiRadarChart.NU,
+			).Scan(&hekiRadarChart.EntryID)
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
+			}
 		},
 	}
 }
