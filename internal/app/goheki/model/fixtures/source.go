@@ -20,7 +20,6 @@ func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
 		Url:  "https://example.com",
 		Type: "2",
 	}
-	var id int64
 
 	setter(source)
 
@@ -53,12 +52,11 @@ func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
 				source.Name,
 				source.Url,
 				source.Type,
-			).Scan(&id)
+			).Scan(&source.ID)
 			if r != nil {
 				t.Fatalf("insert error: %v", r)
 			}
 			// 連番されるIDをセットする
-			source.ID = &id
 		},
 	}
 }
