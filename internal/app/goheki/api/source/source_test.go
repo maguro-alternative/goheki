@@ -98,6 +98,7 @@ func TestReadSourceHandler(t *testing.T) {
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
 
+		// データベースの準備
 		f := &fixtures.Fixture{DBv1: tx}
 		f.Build(t,
 			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
@@ -163,81 +164,36 @@ func TestReadSourceHandler(t *testing.T) {
 		// トランザクションの開始
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
-		var ids []int64
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+
+		// データベースの準備
+		f := &fixtures.Fixture{DBv1: tx}
+		f.Build(t,
+			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+				s.Name = "テストソース1"
+				s.Url = "https://example.com/image1.png"
+				s.Type = "anime"
+			}),
+			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+				s.Name = "テストソース2"
+				s.Url = "https://example.com/image2.png"
+				s.Type = "game"
+			}),
+		)
+
 		// テストデータの準備
 		sources := []Source{
 			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
+				Name: f.Sources[0].Name,
+				Url:  f.Sources[0].Url,
+				Type: f.Sources[0].Type,
 			},
 			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
+				Name: f.Sources[1].Name,
+				Url:  f.Sources[1].Url,
+				Type: f.Sources[1].Type,
 			},
 		}
 
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-		entrys := []Entry{
-			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-
-		query = `
-			INSERT INTO entry (
-				source_id,
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:source_id,
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -246,7 +202,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d", ids[0]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d", sources[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
