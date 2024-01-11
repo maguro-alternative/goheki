@@ -37,7 +37,7 @@ func NewLink(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO link (entry_id, type, url, nsfw, darkness) VALUES (:entry_id, :type, :url, :nsfw, :darkness)", link)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO link (entry_id, type, url, nsfw, darkness) VALUES (:entry_id, :type, :url, :nsfw, :darkness)", link)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
