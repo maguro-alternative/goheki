@@ -3,8 +3,8 @@ package fixtures
 import (
 	//"github.com/maguro-alternative/goheki/internal/app/goheki/model/fixtures"
 
-	"testing"
 	"context"
+	"testing"
 	"time"
 )
 
@@ -19,10 +19,10 @@ type Entry struct {
 
 func NewEntry(ctx context.Context) *ModelConnector {
 	entry := &Entry{
-		SourceID: 1,
-		Name: "test",
-		Image: "https://example.com",
-		Content: "test",
+		SourceID:  1,
+		Name:      "test",
+		Image:     "https://example.com",
+		Content:   "test",
 		CreatedAt: time.Now(),
 	}
 
@@ -41,7 +41,7 @@ func NewEntry(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO entry (source_id, name, image, content, created_at) VALUES (:source_id, :name, :image, :content, :created_at)", entry)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO entry (source_id, name, image, content, created_at) VALUES (:source_id, :name, :image, :content, :created_at)", entry)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
