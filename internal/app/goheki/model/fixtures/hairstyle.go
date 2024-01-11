@@ -10,10 +10,12 @@ type HairStyle struct {
 	Style   string `db:"style"`
 }
 
-func NewHairStyle(ctx context.Context) *ModelConnector {
+func NewHairStyle(ctx context.Context, setter func(h *HairStyle)) *ModelConnector {
 	hairStyle := &HairStyle{
 		Style: "long",
 	}
+
+	setter(hairStyle)
 
 	return &ModelConnector{
 		Model: hairStyle,
@@ -30,17 +32,10 @@ func NewHairStyle(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_style (entry_id, style) VALUES (:entry_id, :style)", hairStyle)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_style (entry_id, style) VALUES (:entry_id, :style)", hairStyle)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
-			// 連番されるIDをセットする
-			hairStyle.EntryID = &id
 		},
 	}
 }
