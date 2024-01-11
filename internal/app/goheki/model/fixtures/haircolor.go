@@ -6,7 +6,7 @@ import (
 )
 
 type HairColor struct {
-	EntryID int64 `db:"entry_id"`
+	EntryID int64  `db:"entry_id"`
 	Color   string `db:"color"`
 }
 
@@ -30,7 +30,7 @@ func NewHairColor(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			_, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO hair_color (entry_id, color) VALUES (:entry_id, :color)", hairColor)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_color (entry_id, color) VALUES (:entry_id, :color)", hairColor)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
