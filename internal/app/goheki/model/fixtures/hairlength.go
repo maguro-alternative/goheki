@@ -10,10 +10,12 @@ type HairLength struct {
 	Length  int64  `db:"length"`
 }
 
-func NewHeirLength(ctx context.Context) *ModelConnector {
+func NewHeirLength(ctx context.Context, setter func(h *HairLength)) *ModelConnector {
 	heirLength := &HairLength{
 		Length: 1,
 	}
+
+	setter(heirLength)
 
 	return &ModelConnector{
 		Model: heirLength,
@@ -30,17 +32,10 @@ func NewHeirLength(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_length (entry_id, length) VALUES (:entry_id, :length)", heirLength)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_length (entry_id, length) VALUES (:entry_id, :length)", heirLength)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
-			// 連番されるIDをセットする
-			heirLength.EntryID = &id
 		},
 	}
 }
