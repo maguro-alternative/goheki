@@ -17,7 +17,7 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func NewEntry(ctx context.Context) *ModelConnector {
+func NewEntry(ctx context.Context, setter func(e *Entry)) *ModelConnector {
 	entry := &Entry{
 		SourceID:  1,
 		Name:      "test",
@@ -25,6 +25,8 @@ func NewEntry(ctx context.Context) *ModelConnector {
 		Content:   "test",
 		CreatedAt: time.Now(),
 	}
+
+	setter(entry)
 
 	return &ModelConnector{
 		Model: entry,
@@ -41,17 +43,31 @@ func NewEntry(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO entry (source_id, name, image, content, created_at) VALUES (:source_id, :name, :image, :content, :created_at)", entry)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
+			result := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO entry (
+					source_id,
+					name,
+					image,
+					content,
+					created_at
+				) VALUES (
+					$1,
+					$2,
+					$3,
+					$4,
+					$5
+				) RETURNING id`,
+				entry.SourceID,
+				entry.Name,
+				entry.Image,
+				entry.Content,
+				entry.CreatedAt,
+			).Scan(&entry.ID)
 			// 連番されるIDをセットする
-			entry.ID = &id
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
+			}
 		},
 	}
 }
