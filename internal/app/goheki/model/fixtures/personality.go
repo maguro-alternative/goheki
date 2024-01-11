@@ -11,10 +11,12 @@ type Personality struct {
 	Type    string `db:"type"`
 }
 
-func NewPersonality(ctx context.Context) *ModelConnector {
+func NewPersonality(ctx context.Context, setter func(p *Personality)) *ModelConnector {
 	personality := &Personality{
 		Type: "introvert",
 	}
+
+	setter(personality)
 
 	return &ModelConnector{
 		Model: personality,
@@ -31,17 +33,22 @@ func NewPersonality(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO personality (entry_id, type) VALUES (:entry_id, :type)", personality)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
 			// 連番されるIDをセットする
-			personality.ID = &id
+			result := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO personality (
+					entry_id,
+					type
+				) VALUES (
+					$1,
+					$2
+				)`,
+				personality.EntryID,
+				personality.Type,
+			).Scan(&personality.ID)
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
+			}
 		},
 	}
 }
