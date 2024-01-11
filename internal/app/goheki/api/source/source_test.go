@@ -288,32 +288,32 @@ func TestReadSourceHandler(t *testing.T) {
 }
 
 func TestUpdateSourceHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}),
+		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}),
+	)
 	t.Run("source更新", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		var ids []int64
-
 		// テストデータの準備
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
 		updateSource := []Source{
 			{
 				Name: "テストソース1更新",
@@ -326,30 +326,6 @@ func TestUpdateSourceHandler(t *testing.T) {
 				Type: "game",
 			},
 		}
-
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
 
 		var indexService = service.NewIndexService(
 			tx,
