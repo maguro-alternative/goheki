@@ -11,8 +11,10 @@ type EntryTag struct {
 	TagID   *int64 `db:"tag_id"`
 }
 
-func NewEntryTag(ctx context.Context) *ModelConnector {
+func NewEntryTag(ctx context.Context, setter func(e *EntryTag)) *ModelConnector {
 	entryTag := &EntryTag{}
+
+	setter(entryTag)
 
 	return &ModelConnector{
 		Model: entryTag,
@@ -32,17 +34,21 @@ func NewEntryTag(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO entry_tag (entry_id, tag_id) VALUES (:entry_id, :tag_id)", entryTag)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
+			result := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO entry_tag (
+					entry_id,
+					tag_id
+				) VALUES (
+					$1,
+					$2
+				) RETURNING id`,
+				entryTag.EntryID,
+				entryTag.TagID,
+			).Scan(&entryTag.ID)
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
 			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
-			// 連番されるIDをセットする
-			entryTag.ID = &id
 		},
 	}
 }
