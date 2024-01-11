@@ -32,7 +32,7 @@ func NewHekiRadarChart(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO heki_radar_chart (entry_id, ai, nu) VALUES (:entry_id, :ai, :nu)", hekiRadarChart)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO heki_radar_chart (entry_id, ai, nu) VALUES (:entry_id, :ai, :nu)", hekiRadarChart)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
