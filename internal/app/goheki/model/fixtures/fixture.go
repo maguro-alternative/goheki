@@ -19,17 +19,16 @@ type Fixture struct {
 	Personalities   []*Personality
 	Links           []*Link
 
-	dbv1 db.Driver
+	DBv1 db.Driver
 }
 
-func Build(t *testing.T, modelConnectors ...*ModelConnector) *Fixture {
-	fixture := &Fixture{}
+func (f *Fixture)Build(t *testing.T, modelConnectors ...*ModelConnector) *Fixture {
 
 	for _, modelConnector := range modelConnectors {
-		modelConnector.addToFixtureAndConnect(t, fixture)
+		modelConnector.addToFixtureAndConnect(t, f)
 	}
 
-	return fixture
+	return f
 }
 
 type ModelConnector struct {
