@@ -16,7 +16,7 @@ type Fixture struct {
 	HairLengths     []*HairLength
 	HairColors      []*HairColor
 	HairStyles      []*HairStyle
-	Personalitys    []*Personality
+	Personalities   []*Personality
 	Links           []*Link
 
 	dbv1 db.Driver
