@@ -14,7 +14,7 @@ type BWH struct {
 	Weight  *int64 `db:"weight"`
 }
 
-func NewBWH(ctx context.Context) *ModelConnector {
+func NewBWH(ctx context.Context, setter func(b *BWH)) *ModelConnector {
 	bwh := &BWH{
 		Bust:   1,
 		Waist:  1,
@@ -22,6 +22,8 @@ func NewBWH(ctx context.Context) *ModelConnector {
 		Height: nil,
 		Weight: nil,
 	}
+
+	setter(bwh)
 
 	return &ModelConnector{
 		Model: bwh,
@@ -38,17 +40,10 @@ func NewBWH(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO bwh (entry_id, bust, waist, hip, height, weight) VALUES (:entry_id, :bust, :waist, :hip, :height, :weight)", bwh)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO bwh (entry_id, bust, waist, hip, height, weight) VALUES (:entry_id, :bust, :waist, :hip, :height, :weight)", bwh)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
-			}
-			// 連番されるIDをセットする
-			bwh.EntryID = &id
 		},
 	}
 }
