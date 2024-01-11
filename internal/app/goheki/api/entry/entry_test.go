@@ -16,6 +16,8 @@ import (
 
 	"github.com/maguro-alternative/goheki/pkg/db"
 
+	"github.com/maguro-alternative/goheki/internal/app/goheki/model/fixtures"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -118,92 +120,60 @@ func TestCreateEntryHandler(t *testing.T) {
 }
 
 func TestReadEntryHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func (e *fixtures.Entry)  {
+			e.Name = "テストエントリ1"
+			e.Image = "https://example.com/image1.png"
+			e.Content = "テスト内容1"
+			e.CreatedAt = fixedTime
+		})),
+		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func (e *fixtures.Entry)  {
+			e.Name = "テストエントリ2"
+			e.Image = "https://example.com/image2.png"
+			e.Content = "テスト内容2"
+			e.CreatedAt = fixedTime
+		})),
+	)
 	t.Run("entry全件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		var ids []int64
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
-		// テストデータの準備
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
-
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
 		entrys := []Entry{
 			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
+				SourceID:  *f.Sources[0].ID,
+				Name:      f.Entrys[0].Name,
+				Image:     f.Entrys[0].Image,
+				Content:   f.Entrys[0].Content,
+				CreatedAt: f.Entrys[0].CreatedAt,
 			},
 			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
+				SourceID:  *f.Sources[1].ID,
+				Name:      f.Entrys[1].Name,
+				Image:     f.Entrys[1].Image,
+				Content:   f.Entrys[1].Content,
+				CreatedAt: f.Entrys[1].CreatedAt,
 			},
 		}
-		query = `
-			INSERT INTO entry (
-				source_id,
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:source_id,
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
+
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
