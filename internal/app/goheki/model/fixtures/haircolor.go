@@ -10,10 +10,12 @@ type HairColor struct {
 	Color   string `db:"color"`
 }
 
-func NewHairColor(ctx context.Context) *ModelConnector {
+func NewHairColor(ctx context.Context, setter func(h *HairColor)) *ModelConnector {
 	hairColor := &HairColor{
 		Color: "black",
 	}
+
+	setter(hairColor)
 
 	return &ModelConnector{
 		Model: hairColor,
