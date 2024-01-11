@@ -30,7 +30,7 @@ func NewHairStyle(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO hair_style (entry_id, style) VALUES (:entry_id, :style)", hairStyle)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_style (entry_id, style) VALUES (:entry_id, :style)", hairStyle)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
