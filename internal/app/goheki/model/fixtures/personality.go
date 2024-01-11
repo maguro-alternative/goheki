@@ -31,7 +31,7 @@ func NewPersonality(ctx context.Context) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO personality (entry_id, type) VALUES (:entry_id, :type)", personality)
+			result, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO personality (entry_id, type) VALUES (:entry_id, :type)", personality)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
