@@ -156,23 +156,23 @@ func TestReadEntryHandler(t *testing.T) {
 			e.CreatedAt = fixedTime
 		})),
 	)
+	entrys := []Entry{
+		{
+			SourceID:  *f.Sources[0].ID,
+			Name:      f.Entrys[0].Name,
+			Image:     f.Entrys[0].Image,
+			Content:   f.Entrys[0].Content,
+			CreatedAt: f.Entrys[0].CreatedAt,
+		},
+		{
+			SourceID:  *f.Sources[1].ID,
+			Name:      f.Entrys[1].Name,
+			Image:     f.Entrys[1].Image,
+			Content:   f.Entrys[1].Content,
+			CreatedAt: f.Entrys[1].CreatedAt,
+		},
+	}
 	t.Run("entry全件取得", func(t *testing.T) {
-		entrys := []Entry{
-			{
-				SourceID:  *f.Sources[0].ID,
-				Name:      f.Entrys[0].Name,
-				Image:     f.Entrys[0].Image,
-				Content:   f.Entrys[0].Content,
-				CreatedAt: f.Entrys[0].CreatedAt,
-			},
-			{
-				SourceID:  *f.Sources[1].ID,
-				Name:      f.Entrys[1].Name,
-				Image:     f.Entrys[1].Image,
-				Content:   f.Entrys[1].Content,
-				CreatedAt: f.Entrys[1].CreatedAt,
-			},
-		}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -207,99 +207,6 @@ func TestReadEntryHandler(t *testing.T) {
 	})
 
 	t.Run("entry1件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		var ids []int64
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
-		// テストデータの準備
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
-
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-		entrys := []Entry{
-			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-		query = `
-			INSERT INTO entry (
-				source_id,
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:source_id,
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				entry
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -307,7 +214,7 @@ func TestReadEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", ids[0]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", *f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -332,101 +239,6 @@ func TestReadEntryHandler(t *testing.T) {
 	})
 
 	t.Run("entry2件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		var ids []int64
-		var idsJson IDs
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
-		// テストデータの準備
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
-
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-		entrys := []Entry{
-			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-		query = `
-			INSERT INTO entry (
-				source_id,
-				name,
-				image,
-				content,
-				created_at
-			) VALUES (
-				:source_id,
-				:name,
-				:image,
-				:content,
-				:created_at
-			)
-		`
-		for _, entry := range entrys {
-			_, err = tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				entry
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-		idsJson.IDs = ids
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -434,7 +246,7 @@ func TestReadEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", ids[0], ids[1]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
