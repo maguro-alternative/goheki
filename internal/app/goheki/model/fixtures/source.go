@@ -38,7 +38,7 @@ func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			r := f.DBv1.QueryRowxContext(
+			result := f.DBv1.QueryRowxContext(
 				ctx,
 				`INSERT INTO source (
 					name,
@@ -53,8 +53,8 @@ func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
 				source.Url,
 				source.Type,
 			).Scan(&source.ID)
-			if r != nil {
-				t.Fatalf("insert error: %v", r)
+			if result != nil {
+				t.Fatalf("insert error: %v", result)
 			}
 			// 連番されるIDをセットする
 		},
