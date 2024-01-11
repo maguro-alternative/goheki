@@ -8,18 +8,21 @@ import (
 )
 
 type Source struct {
-	ID      *int64 `db:"id"`
-	Name    string `db:"name"`
-	Url     string `db:"url"`
-	Type    string `db:"type"`
+	ID   *int64 `db:"id"`
+	Name string `db:"name"`
+	Url  string `db:"url"`
+	Type string `db:"type"`
 }
 
-func NewSource(ctx context.Context,) *ModelConnector {
+func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
 	source := &Source{
 		Name: "test",
 		Url:  "https://example.com",
 		Type: "2",
 	}
+	var id int64
+
+	setter(source)
 
 	return &ModelConnector{
 		Model: source,
@@ -36,14 +39,23 @@ func NewSource(ctx context.Context,) *ModelConnector {
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			result, err := f.dbv1.NamedExecContext(ctx, "INSERT INTO source (name, url, type) VALUES (:name, :url, :type)", source)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			// 連番されるIDを取得する
-			id, err := result.LastInsertId()
-			if err != nil {
-				t.Fatal(err)
+			r := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO source (
+					name,
+					url,
+					type
+				) VALUES (
+					$1,
+					$2,
+					$3
+				) RETURNING id`,
+				source.Name,
+				source.Url,
+				source.Type,
+			).Scan(&id)
+			if r != nil {
+				t.Fatalf("insert error: %v", r)
 			}
 			// 連番されるIDをセットする
 			source.ID = &id

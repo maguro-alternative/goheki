@@ -91,6 +91,9 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("select error: %v", err))
 		}
+		if len(sources) == 0 {
+			log.Fatal("sources is empty")
+		}
 		json.NewEncoder(w).Encode(sources)
 		return
 	} else if len(entryIDs) == 1 {

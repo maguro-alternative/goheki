@@ -16,6 +16,8 @@ import (
 
 	"github.com/maguro-alternative/goheki/pkg/db"
 
+	"github.com/maguro-alternative/goheki/internal/app/goheki/model/fixtures"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -96,34 +98,32 @@ func TestReadSourceHandler(t *testing.T) {
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
 
+		f := &fixtures.Fixture{DBv1: tx}
+		f.Build(t,
+			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+				s.Name = "テストソース1"
+				s.Url = "https://example.com/image1.png"
+				s.Type = "anime"
+			}),
+			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+				s.Name = "テストソース2"
+				s.Url = "https://example.com/image2.png"
+				s.Type = "game"
+			}),
+		)
+
 		// テストデータの準備
 		sources := []Source{
 			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
+				Name: f.Sources[0].Name,
+				Url:  f.Sources[0].Url,
+				Type: f.Sources[0].Type,
 			},
 			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
+				Name: f.Sources[1].Name,
+				Url:  f.Sources[1].Url,
+				Type: f.Sources[1].Type,
 			},
-		}
-
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
 		}
 
 		var indexService = service.NewIndexService(
