@@ -16,106 +16,62 @@ import (
 
 	"github.com/maguro-alternative/goheki/pkg/db"
 
+	"github.com/maguro-alternative/goheki/internal/app/goheki/model/fixtures"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateEntryTagHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ1"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "テスト内容1"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ2"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "テスト内容2"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ1"
+		}),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ2"
+		}),
+	)
 	t.Run("entry_tag登録", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
-		var ids []int64
-		// テストデータの準備
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-		entrys := []Entry{
-			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
-				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
-				CreatedAt: fixedTime,
-			},
-			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
-				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
-				CreatedAt: fixedTime,
-			},
-		}
-		for _, entry := range entrys {
-			_, err := tx.NamedExecContext(ctx, query, entry)
-			assert.NoError(t, err)
-		}
-		query = `
-			INSERT INTO tag (
-				name
-			) VALUES (
-				:name
-			)
-		`
-		tags := []Tag{
-			{
-				Name: "テストタグ1",
-			},
-			{
-				Name: "テストタグ2",
-			},
-		}
-		for _, tag := range tags {
-			_, err = tx.NamedExecContext(ctx, query, tag)
-			assert.NoError(t, err)
-		}
 		entryTags := []EntryTag{
 			{
-				EntryID: entrys[0].ID,
-				TagID: tags[0].ID,
+				EntryID: f.Entrys[0].ID,
+				TagID:   f.Tags[0].ID,
 			},
 			{
-				EntryID: entrys[1].ID,
-				TagID: tags[1].ID,
+				EntryID: f.Entrys[1].ID,
+				TagID:   f.Tags[1].ID,
 			},
 		}
 
@@ -146,7 +102,7 @@ func TestCreateEntryTagHandler(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entrys, actual)
+		assert.Equal(t, entryTags, actual)
 	})
 }
 
