@@ -26,7 +26,7 @@ func NewTag(ctx context.Context, setter func(t *Tag)) *ModelConnector {
 			// 連番されるIDをセットする
 			result := f.DBv1.QueryRowxContext(
 				ctx,
-				"INSERT INTO tag (name) VALUES ($1)",
+				"INSERT INTO tag (name) VALUES ($1) RETURNING id",
 				tag.Name,
 			).Scan(&tag.ID)
 			if result != nil {
