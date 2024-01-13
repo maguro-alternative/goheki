@@ -157,11 +157,11 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			link
 		SET
-			:entry_id,
-			:type,
-			:url,
-			:nsfw,
-			:darkness
+			entry_id = :entry_id,
+			type = :type,
+			url = :url,
+			nsfw = :nsfw,
+			darkness = :darkness
 		WHERE
 			id = :id
 	`
