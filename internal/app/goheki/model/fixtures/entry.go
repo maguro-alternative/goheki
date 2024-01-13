@@ -38,6 +38,9 @@ func NewEntry(ctx context.Context, setter func(e *Entry)) *ModelConnector {
 			case *EntryTag:
 				entryTag := connectingModel.(*EntryTag)
 				entryTag.EntryID = entry.ID
+			case *BWH:
+				bwh := connectingModel.(*BWH)
+				bwh.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, entry)
 			}
