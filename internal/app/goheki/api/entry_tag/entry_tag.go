@@ -144,8 +144,8 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			entry_tag
 		SET
-			entry_id := entry_id,
-			tag_id := tag_id
+			entry_id = :entry_id,
+			tag_id = :tag_id
 		WHERE
 			id = :id
 	`
