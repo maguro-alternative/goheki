@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 
-	//"fmt"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -159,5 +159,25 @@ func TestReadPersonalityHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, f.Personalities, res)
+	})
+
+	t.Run("personality1件取得", func(t *testing.T) {
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?id=%d", *f.Personalities[0].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// レスポンスの確認
+		var res []Personality
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, f.Personalities[0], res)
 	})
 }
