@@ -42,7 +42,7 @@ func NewPersonality(ctx context.Context, setter func(p *Personality)) *ModelConn
 				) VALUES (
 					$1,
 					$2
-				)`,
+				) RETURNING id`,
 				personality.EntryID,
 				personality.Type,
 			).Scan(&personality.ID)
