@@ -89,7 +89,10 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("select error: %v", err))
 		}
-		json.NewEncoder(w).Encode(&entryTags)
+		err = json.NewEncoder(w).Encode(&entryTags)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		}
 		return
 	} else if len(queryIDs) == 1 {
 		query = `
