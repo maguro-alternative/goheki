@@ -243,3 +243,105 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.Equal(t, bwhs, res)
 	})
 }
+
+func TestUpdateBEHHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	yumiHeight := int64(167)
+	takaneHeight := int64(169)
+	takaneWeight := int64(49)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "閃乱カグラ"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "雪泉"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "かわいい"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewBWH(ctx, func(s *fixtures.BWH) {
+			s.Bust = 92
+			s.Waist = 56
+			s.Hip = 84
+			s.Height = &yumiHeight
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "アイドルマスター"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "四条貴音"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "お姫ちん"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewBWH(ctx, func(s *fixtures.BWH) {
+			s.Bust = 90
+			s.Waist = 60
+			s.Hip = 92
+			s.Height = &takaneHeight
+			s.Weight = &takaneWeight
+		}))),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ1"
+		}),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ2"
+		}),
+	)
+
+	// テストデータの準備
+	updateBWHs := []BWH{
+		{
+			EntryID: f.Entrys[0].ID,
+			Bust:   98,
+			Waist:  59,
+			Hip:    87,
+			Height: &yumiHeight,
+			Weight: nil,
+		},
+		{
+			EntryID: f.Entrys[1].ID,
+			Bust:   93,
+			Waist:  62,
+			Hip:    96,
+			Height: &takaneHeight,
+			Weight: &takaneWeight,
+		},
+	}
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("bwh更新", func(t *testing.T) {
+		h := NewUpdateHandler(indexService)
+		bJson, err := json.Marshal(updateBWHs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/bwh/update", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []BWH
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, updateBWHs, res)
+	})
+}
