@@ -161,12 +161,14 @@ func TestReadLinkHandler(t *testing.T) {
 
 	links := []Link{
 		{
+			EntryID:  f.Links[0].EntryID,
 			Type:     f.Links[0].Type,
 			URL:      f.Links[0].URL,
 			Nsfw:     f.Links[0].Nsfw,
 			Darkness: f.Links[0].Darkness,
 		},
 		{
+			EntryID:  f.Links[1].EntryID,
 			Type:     f.Links[1].Type,
 			URL:      f.Links[1].URL,
 			Nsfw:     f.Links[1].Nsfw,
