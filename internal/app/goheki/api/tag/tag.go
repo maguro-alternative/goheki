@@ -43,7 +43,10 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(fmt.Sprintf("insert error: %v", err))
 		}
 	}
-	json.NewEncoder(w).Encode(&tags)
+	err = json.NewEncoder(w).Encode(&tags)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+	}
 }
 
 type ReadHandler struct {
@@ -83,7 +86,10 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("select error: %v", err))
 		}
-		json.NewEncoder(w).Encode(&tags)
+		err = json.NewEncoder(w).Encode(&tags)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		}
 		return
 	} else if len(queryIDs) == 1 {
 		query = `
@@ -99,7 +105,10 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("select error: %v", err))
 		}
-		json.NewEncoder(w).Encode(&tags)
+		err = json.NewEncoder(w).Encode(&tags)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
@@ -111,7 +120,10 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("select error: %v", err))
 	}
-	json.NewEncoder(w).Encode(tags)
+	err = json.NewEncoder(w).Encode(tags)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+	}
 }
 
 type UpdateHandler struct {
@@ -147,7 +159,10 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(fmt.Sprintf("update error: %v", err))
 		}
 	}
-	json.NewEncoder(w).Encode(tags)
+	err = json.NewEncoder(w).Encode(tags)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+	}
 }
 
 type DeleteHandler struct {
@@ -203,5 +218,8 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("delete error: %v", err), query, args)
 	}
-	json.NewEncoder(w).Encode(&delIDs)
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+	}
 }
