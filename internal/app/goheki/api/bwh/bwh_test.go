@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	//"fmt"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -207,5 +207,22 @@ func TestReadBEHHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res)
+	})
+
+	t.Run("bwh1件取得", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []BWH
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, bwhs[:1], res)
 	})
 }
