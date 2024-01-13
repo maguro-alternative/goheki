@@ -178,6 +178,6 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0], res)
+		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
 	})
 }
