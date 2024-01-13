@@ -180,4 +180,25 @@ func TestReadPersonalityHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
 	})
+
+	t.Run("personality2件取得", func(t *testing.T) {
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?id=%d&id=%d", *f.Personalities[0].ID, *f.Personalities[1].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// レスポンスの確認
+		var res []Personality
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
+		assert.Equal(t, f.Personalities[1].Type, res[1].Type)
+	})
 }
