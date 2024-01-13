@@ -139,47 +139,6 @@ func TestReadTagHandler(t *testing.T) {
 	})
 
 	t.Run("tag1件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		// テストデータの準備
-		var ids []int64
-		tag := []Tag{
-			{
-				Name: "テストタグ1",
-			},
-			{
-				Name: "テストタグ2",
-			},
-		}
-
-		query := `
-			INSERT INTO tag (
-				name
-			) VALUES (
-				:name
-			)
-		`
-		for _, tag := range tag {
-			_, err = tx.NamedExecContext(ctx, query, tag)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				tag
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -187,7 +146,7 @@ func TestReadTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d",ids[0]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d",*f.Tags[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -201,51 +160,10 @@ func TestReadTagHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, actuals[0].Name)
+		assert.Equal(t, f.Tags[0].Name, actuals[0].Name)
 	})
 
 	t.Run("tag2件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		var ids []int64
-		// テストデータの準備
-		tag := []Tag{
-			{
-				Name: "テストタグ1",
-			},
-			{
-				Name: "テストタグ2",
-			},
-		}
-
-		query := `
-			INSERT INTO tag (
-				name
-			) VALUES (
-				:name
-			)
-		`
-		for _, tag := range tag {
-			_, err = tx.NamedExecContext(ctx, query, tag)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				tag
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
-
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -253,7 +171,7 @@ func TestReadTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d&id=%d", ids[0], ids[1]), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d&id=%d", *f.Tags[0].ID, *f.Tags[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -267,8 +185,8 @@ func TestReadTagHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, tags[0].Name)
-		assert.Equal(t, tag[1].Name, tags[1].Name)
+		assert.Equal(t, f.Tags[0].Name, tags[0].Name)
+		assert.Equal(t, f.Tags[1].Name, tags[1].Name)
 	})
 
 }
