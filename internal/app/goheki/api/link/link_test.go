@@ -347,3 +347,84 @@ func TestUpdateLinkHandler(t *testing.T) {
 		assert.Equal(t, updateLinks, res)
 	})
 }
+
+func TestDeleteLinkHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ1"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "テスト内容1"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewLink(ctx, func(l *fixtures.Link) {
+			l.Type = "funart"
+			l.URL = "https://pixiv.com"
+			l.Nsfw = true
+			l.Darkness = false
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ2"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "テスト内容2"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewLink(ctx, func(l *fixtures.Link) {
+			l.Type = "original"
+			l.URL = "https://pixiv.com"
+			l.Nsfw = true
+			l.Darkness = true
+		}))),
+	)
+
+	delIDs := IDs{IDs:[]int64{*f.Links[0].ID, *f.Links[1].ID,}}
+
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+
+	t.Run("link削除", func(t *testing.T) {
+		// テストの実行
+		h := NewDeleteHandler(indexService)
+		// リクエストを作成
+		lJson, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodDelete, "/api/link/delete", bytes.NewBuffer(lJson))
+		assert.NoError(t, err)
+		// レスポンスを作成
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// レスポンスの検証
+		var res IDs
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+
+		assert.Len(t, res.IDs, 2)
+		assert.Equal(t, delIDs, res)
+	})
+}
