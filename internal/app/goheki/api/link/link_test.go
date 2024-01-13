@@ -220,10 +220,10 @@ func TestReadLinkHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの検証
-		var res Link
+		var res []Link
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 
-		assert.Equal(t, links[0], res)
+		assert.Equal(t, links[0], res[0])
 	})
 }
