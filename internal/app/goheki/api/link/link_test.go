@@ -209,7 +209,7 @@ func TestReadLinkHandler(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
 		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read/id=%d", *f.Links[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d", *f.Links[0].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスを作成
 		w := httptest.NewRecorder()
@@ -225,5 +225,27 @@ func TestReadLinkHandler(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, links[0], res[0])
+	})
+
+	t.Run("link2件取得", func(t *testing.T) {
+		// テストの実行
+		h := NewReadHandler(indexService)
+		// リクエストを作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d&id=%d", *f.Links[0].ID, *f.Links[1].ID), nil)
+		assert.NoError(t, err)
+		// レスポンスを作成
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// レスポンスの検証
+		var res []Link
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+
+		assert.Equal(t, links, res)
 	})
 }
