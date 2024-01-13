@@ -84,6 +84,8 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			weight
 		FROM
 			bwh
+		WHERE
+			entry_id IN (?)
 	`
 	queryIDs, ok := r.URL.Query()["entry_id"]
 	if !ok {
@@ -121,7 +123,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &bwhs, query)
+		err := h.svc.DB.SelectContext(r.Context(), &bwhs, query, queryIDs[0])
 		if err != nil {
 			log.Fatal(fmt.Sprintf("select error: %v", err))
 		}
