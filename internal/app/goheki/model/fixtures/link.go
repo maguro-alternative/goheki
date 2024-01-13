@@ -54,7 +54,7 @@ func NewLink(ctx context.Context, setter func(l *Link)) *ModelConnector {
 					$3,
 					$4,
 					$5
-				)`,
+				) RETURNING id`,
 				link.EntryID,
 				link.Type,
 				link.URL,
