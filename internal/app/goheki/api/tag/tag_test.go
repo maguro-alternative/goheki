@@ -8,12 +8,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/maguro-alternative/goheki/configs/envconfig"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service/cookie"
 
 	"github.com/maguro-alternative/goheki/pkg/db"
+
+	"github.com/maguro-alternative/goheki/internal/app/goheki/model/fixtures"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -68,39 +71,48 @@ func TestCreateTagHandler(t *testing.T) {
 }
 
 func TestReadTagHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ1"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "テスト内容1"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ2"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "テスト内容2"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ1"
+		}),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ2"
+		}),
+	)
 	t.Run("tag全件取得", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		// テストデータの準備
-		tag := []Tag{
-			{
-				Name: "テストタグ1",
-			},
-			{
-				Name: "テストタグ2",
-			},
-		}
-
-		query := `
-			INSERT INTO tag (
-				name
-			) VALUES (
-				:name
-			)
-		`
-		for _, tag := range tag {
-			_, err = tx.NamedExecContext(ctx, query, tag)
-			assert.NoError(t, err)
-		}
-
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
@@ -122,8 +134,8 @@ func TestReadTagHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, tags[0].Name)
-		assert.Equal(t, tag[1].Name, tags[1].Name)
+		assert.Equal(t, f.Tags[0].Name, tags[0].Name)
+		assert.Equal(t, f.Tags[1].Name, tags[1].Name)
 	})
 
 	t.Run("tag1件取得", func(t *testing.T) {
