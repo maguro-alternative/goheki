@@ -104,7 +104,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				personality
 			WHERE
-				entry_id = $1
+				id = $1
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &personalities, query, queryIDs[0])
 		if err != nil {
