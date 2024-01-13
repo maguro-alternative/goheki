@@ -271,48 +271,49 @@ func TestUpdateTagHandler(t *testing.T) {
 }
 
 func TestDeleteTagHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ1"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "テスト内容1"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ2"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "テスト内容2"
+			s.CreatedAt = fixedTime
+		})),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ1"
+		}),
+		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
+			s.Name = "テストタグ2"
+		}),
+	)
 	t.Run("tag削除", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		// テストデータの準備
-		tag := []Tag{
-			{
-				Name: "テストタグ1",
-			},
-			{
-				Name: "テストタグ2",
-			},
-		}
-		var ids []int64
-
-		query := `
-			INSERT INTO tag (
-				name
-			) VALUES (
-				:name
-			)
-		`
-		for _, tag := range tag {
-			_, err = tx.NamedExecContext(ctx, query, tag)
-			assert.NoError(t, err)
-		}
-		selectQuery := `
-			SELECT
-				id
-			FROM
-				tag
-		`
-		err = tx.SelectContext(ctx, &ids, selectQuery)
-		assert.NoError(t, err)
-		delIDs := IDs{IDs: []int64{ids[0]}}
+		delIDs := IDs{IDs: []int64{*f.Tags[0].ID, *f.Tags[1].ID}}
 
 		var indexService = service.NewIndexService(
 			tx,
