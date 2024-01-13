@@ -166,8 +166,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		UPDATE
 			bwh
-		FROM
-			entry_id = :entry_id,
+		SET
 			bust = :bust,
 			waist = :waist,
 			hip = :hip,
