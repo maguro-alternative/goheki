@@ -381,17 +381,6 @@ func TestDeleteSourceHandler(t *testing.T) {
 		}),
 	)
 	t.Run("source削除", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,
