@@ -225,4 +225,21 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs[:1], res)
 	})
+
+	t.Run("bwh2件取得", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []BWH
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, bwhs, res)
+	})
 }
