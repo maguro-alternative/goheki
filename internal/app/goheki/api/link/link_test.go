@@ -249,3 +249,101 @@ func TestReadLinkHandler(t *testing.T) {
 		assert.Equal(t, links, res)
 	})
 }
+
+func TestUpdateLinkHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース1"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ1"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "テスト内容1"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewLink(ctx, func(l *fixtures.Link) {
+			l.Type = "funart"
+			l.URL = "https://pixiv.com"
+			l.Nsfw = true
+			l.Darkness = false
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "テストソース2"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "テストエントリ2"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "テスト内容2"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewLink(ctx, func(l *fixtures.Link) {
+			l.Type = "original"
+			l.URL = "https://pixiv.com"
+			l.Nsfw = true
+			l.Darkness = true
+		}))),
+	)
+
+	updateLinks := []Link{
+		{
+			ID:       f.Links[0].ID,
+			EntryID:  f.Links[0].EntryID,
+			Type:     "funart",
+			URL:      "https://pixiv.com",
+			Nsfw:     true,
+			Darkness: true,
+		},
+		{
+			ID:       f.Links[1].ID,
+			EntryID:  f.Links[1].EntryID,
+			Type:     "original",
+			URL:      "https://pixiv.com",
+			Nsfw:     true,
+			Darkness: false,
+		},
+	}
+
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+
+	t.Run("link更新", func(t *testing.T) {
+		// テストの実行
+		h := NewUpdateHandler(indexService)
+		// リクエストを作成
+		lJson, err := json.Marshal(updateLinks)
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPut, "/api/link/update", bytes.NewBuffer(lJson))
+		assert.NoError(t, err)
+		// レスポンスを作成
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// レスポンスの検証
+		var res []Link
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+
+		assert.Len(t, res, 2)
+		assert.Equal(t, updateLinks, res)
+	})
+}
