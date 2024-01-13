@@ -187,6 +187,25 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
+	if len(delIDs.IDs) == 0 {
+		return
+	} else if len(delIDs.IDs) == 1 {
+		query = `
+			DELETE FROM
+				entry_tag
+			WHERE
+				id = $1
+		`
+		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
+		if err != nil {
+			log.Fatal(fmt.Sprintf("delete error: %v", err))
+		}
+		err = json.NewEncoder(w).Encode(&delIDs)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		}
+		return
+	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
@@ -196,5 +215,8 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("delete error: %v", err), query, args)
 	}
-	json.NewEncoder(w).Encode(&delIDs)
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+	}
 }
