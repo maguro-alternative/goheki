@@ -50,6 +50,9 @@ func NewEntry(ctx context.Context, setter func(e *Entry)) *ModelConnector {
 			case *HairColor:
 				hairColor := connectingModel.(*HairColor)
 				hairColor.EntryID = *entry.ID
+			case *HairLength:
+				hairLength := connectingModel.(*HairLength)
+				hairLength.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, entry)
 			}
