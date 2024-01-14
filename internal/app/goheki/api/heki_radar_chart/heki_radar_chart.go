@@ -107,6 +107,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else if len(queryIDs) == 1 {
+		query = `
+			SELECT
+				entry_id,
+				ai,
+				nu
+			FROM
+				heki_radar_chart
+			WHERE
+				entry_id = $1
+		`
 		err := h.svc.DB.SelectContext(r.Context(), &hekiRadarChart, query, queryIDs[0])
 		if err != nil {
 			log.Println(err)
