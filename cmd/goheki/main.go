@@ -10,8 +10,8 @@ import (
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/bwh"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
-	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry_tag"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 
 	_ "embed"
 	"context"
