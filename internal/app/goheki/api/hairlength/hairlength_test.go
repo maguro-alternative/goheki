@@ -183,4 +183,20 @@ func TestReadHairLengthHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, heirLengths[:1], res)
 	})
+
+	t.Run("hairlength2件取得", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []HairLength
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, heirLengths, res)
+	})
 }
