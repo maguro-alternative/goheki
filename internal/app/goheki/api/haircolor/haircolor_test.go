@@ -86,6 +86,8 @@ func TestCreateHairColorHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res []HairColor
@@ -152,6 +154,8 @@ func TestReadHairColorHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res []HairColor
@@ -169,6 +173,8 @@ func TestReadHairColorHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res []HairColor
@@ -187,6 +193,8 @@ func TestReadHairColorHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res []HairColor
@@ -267,6 +275,8 @@ func TestUpdateHairColorHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res []HairColor
@@ -333,6 +343,8 @@ func TestDeleteHairColorHandler(t *testing.T) {
 
 		// レスポンスの準備
 		w := httptest.NewRecorder()
+		// トランザクションのロールバック
+		tx.RollbackCtx(ctx)
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
 		// レスポンスの検証
