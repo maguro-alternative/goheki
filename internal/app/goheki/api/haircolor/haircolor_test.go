@@ -275,3 +275,71 @@ func TestUpdateHairColorHandler(t *testing.T) {
 		assert.Equal(t, updateHairColors, res)
 	})
 }
+
+func TestDeleteHairColorHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "閃乱カグラ"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "雪泉"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "かわいい"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.Color = "銀"
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "アイドルマスター"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "四条貴音"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "お姫ちん"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.Color = "銀"
+		}))),
+	)
+
+	// テストデータの準備
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("haircolor削除", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewDeleteHandler(indexService)
+		body, err := json.Marshal(IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}})
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/haircolor/delete", bytes.NewBuffer(body))
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		var res IDs
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		assert.Equal(t, []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}, res.IDs)
+	})
+}
