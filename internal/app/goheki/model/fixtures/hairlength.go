@@ -7,12 +7,12 @@ import (
 
 type HairLength struct {
 	EntryID *int64 `db:"entry_id"`
-	Length  int64  `db:"length"`
+	Length  string  `db:"length"`
 }
 
 func NewHeirLength(ctx context.Context, setter func(h *HairLength)) *ModelConnector {
 	heirLength := &HairLength{
-		Length: 1,
+		Length: "long",
 	}
 
 	setter(heirLength)
