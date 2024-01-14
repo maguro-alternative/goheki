@@ -27,7 +27,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	var hairColors []HairColor
 	query := `
-		INSERT INTO hair_color (
+		INSERT INTO haircolor (
 			entry_id,
 			color
 		) VALUES (
@@ -69,7 +69,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			entry_id,
 			color
 		FROM
-			hair_color
+			haircolor
 		WHERE
 			entry_id IN (?)
 	`
@@ -80,7 +80,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				entry_id,
 				color
 			FROM
-				hair_color
+				haircolor
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &hairColors, query)
 		if err != nil {
@@ -97,7 +97,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				entry_id,
 				color
 			FROM
-				hair_color
+				haircolor
 			WHERE
 				entry_id = $1
 		`
@@ -143,7 +143,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var hairColors []HairColor
 	query := `
 		UPDATE
-			hair_color
+			haircolor
 		SET
 			color = :color
 		WHERE
@@ -183,7 +183,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	query := `
 		DELETE FROM
-			hair_color
+			haircolor
 		WHERE
 			entry_id IN (?)
 	`
@@ -196,7 +196,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if len(delIDs.IDs) == 1 {
 		query = `
 			DELETE FROM
-				hair_color
+				haircolor
 			WHERE
 				entry_id = $1
 		`
