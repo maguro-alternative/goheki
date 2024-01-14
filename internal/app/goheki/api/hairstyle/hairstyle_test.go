@@ -275,3 +275,69 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 		assert.Equal(t, updateHairStyles, res)
 	})
 }
+
+func TestDeleteHairStyleHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "閃乱カグラ"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "雪泉"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "かわいい"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
+			s.Style = "ショートカット"
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "アイドルマスター"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "四条貴音"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "お姫ちん"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
+			s.Style = "ウェービーロングヘアー"
+		}))),
+	)
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+
+	t.Run("hairstyle削除", func(t *testing.T) {
+		delIDs := IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
+		h := NewDeleteHandler(indexService)
+		body, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/hairstyles/delete", bytes.NewBuffer(body))
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res IDs
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, delIDs, res)
+	})
+}
