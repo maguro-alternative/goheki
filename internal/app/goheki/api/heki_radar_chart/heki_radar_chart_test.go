@@ -183,7 +183,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 
 	t.Run("heki_rader_chart1件取得", func(t *testing.T) {
 		// リクエストの作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read/%d", f.Entrys[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d", *f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
@@ -196,5 +196,22 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, charts[0], res[0])
+	})
+
+	t.Run("heki_rader_chart2件取得", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry=%d&entry_id%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスの検証
+		var res []HekiRadarChart
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, charts, res)
 	})
 }
