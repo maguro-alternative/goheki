@@ -187,10 +187,6 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&delIDs); err != nil {
 		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 	}
-	query, args, err := db.In(query, delIDs.IDs)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
-	}
 	if len(delIDs.IDs) == 0 {
 		return
 	} else if len(delIDs.IDs) == 1 {
@@ -200,7 +196,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
+		_, err := h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
 			log.Fatal(fmt.Sprintf("db error: %v", err))
 		}
@@ -210,7 +206,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	query, args, err = db.In(query, delIDs.IDs)
+	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db error: %v", err))
 	}
