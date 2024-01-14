@@ -32,7 +32,7 @@ func NewHairColor(ctx context.Context, setter func(h *HairColor)) *ModelConnecto
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_color (entry_id, color) VALUES (:entry_id, :color)", hairColor)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO haircolor (entry_id, color) VALUES (:entry_id, :color)", hairColor)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
