@@ -10,7 +10,7 @@ type HairLength struct {
 	Length  string  `db:"length"`
 }
 
-func NewHeirLength(ctx context.Context, setter func(h *HairLength)) *ModelConnector {
+func NewHairLength(ctx context.Context, setter func(h *HairLength)) *ModelConnector {
 	heirLength := &HairLength{
 		Length: "long",
 	}
