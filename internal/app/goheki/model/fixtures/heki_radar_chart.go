@@ -45,7 +45,7 @@ func NewHekiRadarChart(ctx context.Context, setter func(h *HekiRadarChart)) *Mod
 					$1,
 					$2,
 					$3
-				)`,
+				) RETURNING entry_id`,
 				hekiRadarChart.EntryID,
 				hekiRadarChart.AI,
 				hekiRadarChart.NU,
