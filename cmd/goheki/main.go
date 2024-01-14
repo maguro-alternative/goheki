@@ -7,8 +7,11 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/article"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/middleware"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
+
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/bwh"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry_tag"
 
 	_ "embed"
 	"context"
@@ -48,6 +51,11 @@ func main() {
 	mux := http.NewServeMux()
 	middleChain := alice.New(middleware.CORS)
 	mux.Handle("/", middleChain.Then(article.NewIndexHandler(indexService)))
+
+	mux.Handle("/api/bwh/create", middleChain.Then(bwh.NewCreateHandler(indexService)))
+	mux.Handle("/api/bwh/read", middleChain.Then(bwh.NewReadHandler(indexService)))
+	mux.Handle("/api/bwh/update", middleChain.Then(bwh.NewUpdateHandler(indexService)))
+	mux.Handle("/api/bwh/delete", middleChain.Then(bwh.NewDeleteHandler(indexService)))
 	mux.Handle("/api/entry/create", middleChain.Then(entry.NewCreateHandler(indexService)))
 	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
 	mux.Handle("/api/entry/update", middleChain.Then(entry.NewUpdateHandler(indexService)))
@@ -56,6 +64,10 @@ func main() {
 	mux.Handle("/api/tag/read", middleChain.Then(tag.NewReadHandler(indexService)))
 	mux.Handle("/api/tag/update", middleChain.Then(tag.NewUpdateHandler(indexService)))
 	mux.Handle("/api/tag/delete", middleChain.Then(tag.NewDeleteHandler(indexService)))
+	mux.Handle("/api/entry_tag/create", middleChain.Then(entry_tag.NewCreateHandler(indexService)))
+	mux.Handle("/api/entry_tag/read", middleChain.Then(entry_tag.NewReadHandler(indexService)))
+	mux.Handle("/api/entry_tag/update", middleChain.Then(entry_tag.NewUpdateHandler(indexService)))
+	mux.Handle("/api/entry_tag/delete", middleChain.Then(entry_tag.NewDeleteHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
