@@ -169,7 +169,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 	t.Run("hairstyle1件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d", f.Entrys[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d", *f.Entrys[0].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -181,5 +181,21 @@ func TestReadHairStyleHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(res))
 		assert.Equal(t, hairStyles[0], res[0])
+	})
+
+	t.Run("hairstyle2件取得", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []HairStyle
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(res))
+		assert.Equal(t, hairStyles, res)
 	})
 }
