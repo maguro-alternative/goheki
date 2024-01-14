@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 
-	//"fmt"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -97,5 +97,104 @@ func TestCreateHekiRadarChartHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, charts, res)
+	})
+}
+
+func TestReadHekiRadarChartHandler(t *testing.T) {
+	// setup
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "閃乱カグラ"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "雪泉"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "かわいい"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHekiRadarChart(ctx, func(s *fixtures.HekiRadarChart) {
+			s.AI = 100
+			s.NU = 70
+		}))),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "アイドルマスター"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "四条貴音"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "お姫ちん"
+			s.CreatedAt = fixedTime
+		}).Connect(fixtures.NewHekiRadarChart(ctx, func(s *fixtures.HekiRadarChart) {
+			s.AI = 70
+			s.NU = 60
+		}))),
+	)
+
+	// テストデータの作成
+	charts := []HekiRadarChart{
+		{
+			EntryID: f.Entrys[0].ID,
+			AI:      f.HekiRadarCharts[0].AI,
+			NU:      f.HekiRadarCharts[0].NU,
+		},
+		{
+			EntryID: f.Entrys[1].ID,
+			AI:      f.HekiRadarCharts[1].AI,
+			NU:      f.HekiRadarCharts[1].NU,
+		},
+	}
+
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("heki_rader_chart全件取得", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, "/api/heki_radar_chart/read", nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスの検証
+		var res []HekiRadarChart
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, charts, res)
+	})
+
+	t.Run("heki_rader_chart1件取得", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read/%d", f.Entrys[0].ID), nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスの検証
+		var res []HekiRadarChart
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, charts[0], res[0])
 	})
 }
