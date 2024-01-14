@@ -32,7 +32,7 @@ func NewHeirLength(ctx context.Context, setter func(h *HairLength)) *ModelConnec
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hair_length (entry_id, length) VALUES (:entry_id, :length)", heirLength)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hairlength (entry_id, length) VALUES (:entry_id, :length)", heirLength)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}
