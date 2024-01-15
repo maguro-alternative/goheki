@@ -191,7 +191,7 @@ func TestReadEntryTagHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 
 		// ロールバック
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		// 応答の検証
 		res := w.Result()
@@ -223,7 +223,7 @@ func TestReadEntryTagHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 
 		// ロールバック
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		// 応答の検証
 		res := w.Result()
@@ -255,7 +255,7 @@ func TestReadEntryTagHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 
 		// ロールバック
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		// 応答の検証
 		res := w.Result()
@@ -267,6 +267,8 @@ func TestReadEntryTagHandler(t *testing.T) {
 
 		assert.Equal(t, f.EntryTags[0].ID, actuals[0].ID)
 	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateEntryHandler(t *testing.T) {
