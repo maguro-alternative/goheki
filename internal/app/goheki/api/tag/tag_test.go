@@ -126,7 +126,7 @@ func TestReadTagHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -152,7 +152,7 @@ func TestReadTagHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -177,7 +177,7 @@ func TestReadTagHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -189,6 +189,8 @@ func TestReadTagHandler(t *testing.T) {
 		assert.Equal(t, f.Tags[1].Name, tags[1].Name)
 	})
 
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateTagHandler(t *testing.T) {
