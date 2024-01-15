@@ -173,7 +173,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := NewReadHandler(indexService)
 		handler.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
@@ -191,7 +191,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := NewReadHandler(indexService)
 		handler.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
@@ -209,7 +209,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := NewReadHandler(indexService)
 		handler.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
@@ -218,6 +218,9 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, charts, res)
 	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateHekiRadarChartHandler(t *testing.T) {
