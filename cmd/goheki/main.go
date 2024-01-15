@@ -11,6 +11,10 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/bwh"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/entry_tag"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/haircolor"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/hairlength"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/hairstyle"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/heki_radar_chart"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 
 	_ "embed"
@@ -68,6 +72,19 @@ func main() {
 	mux.Handle("/api/entry_tag/read", middleChain.Then(entry_tag.NewReadHandler(indexService)))
 	mux.Handle("/api/entry_tag/update", middleChain.Then(entry_tag.NewUpdateHandler(indexService)))
 	mux.Handle("/api/entry_tag/delete", middleChain.Then(entry_tag.NewDeleteHandler(indexService)))
+	mux.Handle("/api/haircolor/create", middleChain.Then(haircolor.NewCreateHandler(indexService)))
+	mux.Handle("/api/haircolor/read", middleChain.Then(haircolor.NewReadHandler(indexService)))
+	mux.Handle("/api/haircolor/update", middleChain.Then(haircolor.NewUpdateHandler(indexService)))
+	mux.Handle("/api/haircolor/delete", middleChain.Then(haircolor.NewDeleteHandler(indexService)))
+	mux.Handle("/api/hairlength/create", middleChain.Then(hairlength.NewCreateHandler(indexService)))
+	mux.Handle("/api/hairlength/read", middleChain.Then(hairlength.NewReadHandler(indexService)))
+	mux.Handle("/api/hairlength/update", middleChain.Then(hairlength.NewUpdateHandler(indexService)))
+	mux.Handle("/api/hairlength/delete", middleChain.Then(hairlength.NewDeleteHandler(indexService)))
+	mux.Handle("/api/hairstyle/create", middleChain.Then(hairstyle.NewCreateHandler(indexService)))
+	mux.Handle("/api/hairstyle/read", middleChain.Then(hairstyle.NewReadHandler(indexService)))
+	mux.Handle("/api/hairstyle/update", middleChain.Then(hairstyle.NewUpdateHandler(indexService)))
+	mux.Handle("/api/hairstyle/delete", middleChain.Then(hairstyle.NewDeleteHandler(indexService)))
+	mux.Handle("/api/heki_radar_chart/create", middleChain.Then(hekiradarchart.NewCreateHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
