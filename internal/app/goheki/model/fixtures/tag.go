@@ -10,15 +10,20 @@ type Tag struct {
 	Name string `db:"name"`
 }
 
-func NewTag(ctx context.Context, setter func(t *Tag)) *ModelConnector {
+func NewTag(ctx context.Context, setter ...func(t *Tag)) *ModelConnector {
 	tag := &Tag{
 		Name: "tag",
 	}
 
-	setter(tag)
+	//setter(tag)
 
 	return &ModelConnector{
 		Model: tag,
+		setter: func() {
+			for _, s := range setter {
+				s(tag)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.Tags = append(f.Tags, tag)
 		},

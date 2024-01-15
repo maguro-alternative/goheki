@@ -35,7 +35,7 @@ type ModelConnector struct {
 	Model interface{}
 
 	// 定義されるべきコールバック
-	//setter       func()
+	setter       func()
 	addToFixture func(t *testing.T, f *Fixture)
 	connect      func(t *testing.T, f *Fixture, connectingModel interface{})
 	insertTable  func(t *testing.T, f *Fixture)
@@ -60,7 +60,7 @@ func (mc *ModelConnector) addToFixtureAndConnect(t *testing.T, fixture *Fixture)
 		t.Fatalf("addToFixture field of %T is not properly initialized", mc.Model)
 	}
 	// このモデルをfixtureに追加する
-	//mc.setter()
+	mc.setter()
 	mc.insertTable(t, fixture)
 	mc.addToFixture(t, fixture)
 

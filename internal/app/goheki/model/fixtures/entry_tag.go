@@ -11,13 +11,18 @@ type EntryTag struct {
 	TagID   *int64 `db:"tag_id"`
 }
 
-func NewEntryTag(ctx context.Context, setter func(e *EntryTag)) *ModelConnector {
+func NewEntryTag(ctx context.Context, setter ...func(e *EntryTag)) *ModelConnector {
 	entryTag := &EntryTag{}
 
-	setter(entryTag)
+	//setter(entryTag)
 
 	return &ModelConnector{
 		Model: entryTag,
+		setter: func() {
+			for _, s := range setter {
+				s(entryTag)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.EntryTags = append(f.EntryTags, entryTag)
 		},

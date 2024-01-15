@@ -14,7 +14,7 @@ type Link struct {
 	Darkness bool   `db:"darkness"`
 }
 
-func NewLink(ctx context.Context, setter func(l *Link)) *ModelConnector {
+func NewLink(ctx context.Context, setter ...func(l *Link)) *ModelConnector {
 	link := &Link{
 		Type:     "blog",
 		URL:      "https://example.com",
@@ -22,10 +22,15 @@ func NewLink(ctx context.Context, setter func(l *Link)) *ModelConnector {
 		Darkness: false,
 	}
 
-	setter(link)
+	//setter(link)
 
 	return &ModelConnector{
 		Model: link,
+		setter: func() {
+			for _, s := range setter {
+				s(link)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.Links = append(f.Links, link)
 		},

@@ -14,7 +14,7 @@ type BWH struct {
 	Weight  *int64 `db:"weight"`
 }
 
-func NewBWH(ctx context.Context, setter func(b *BWH)) *ModelConnector {
+func NewBWH(ctx context.Context, setter ...func(b *BWH)) *ModelConnector {
 	bwh := &BWH{
 		Bust:   1,
 		Waist:  1,
@@ -23,10 +23,15 @@ func NewBWH(ctx context.Context, setter func(b *BWH)) *ModelConnector {
 		Weight: nil,
 	}
 
-	setter(bwh)
+	//setter(bwh)
 
 	return &ModelConnector{
 		Model: bwh,
+		setter: func() {
+			for _, s := range setter {
+				s(bwh)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.BWHs = append(f.BWHs, bwh)
 		},

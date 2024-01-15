@@ -17,7 +17,7 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func NewEntry(ctx context.Context, setter func(e *Entry)) *ModelConnector {
+func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 	entry := &Entry{
 		SourceID:  1,
 		Name:      "test",
@@ -26,10 +26,15 @@ func NewEntry(ctx context.Context, setter func(e *Entry)) *ModelConnector {
 		CreatedAt: time.Now(),
 	}
 
-	setter(entry)
+	//setter(entry)
 
 	return &ModelConnector{
 		Model: entry,
+		setter: func() {
+			for _, s := range setter {
+				s(entry)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.Entrys = append(f.Entrys, entry)
 		},

@@ -10,15 +10,20 @@ type HairStyle struct {
 	Style   string `db:"style"`
 }
 
-func NewHairStyle(ctx context.Context, setter func(h *HairStyle)) *ModelConnector {
+func NewHairStyle(ctx context.Context, setter ...func(h *HairStyle)) *ModelConnector {
 	hairStyle := &HairStyle{
 		Style: "long",
 	}
 
-	setter(hairStyle)
+	//setter(hairStyle)
 
 	return &ModelConnector{
 		Model: hairStyle,
+		setter: func() {
+			for _, s := range setter {
+				s(hairStyle)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.HairStyles = append(f.HairStyles, hairStyle)
 		},

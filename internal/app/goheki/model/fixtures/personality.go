@@ -11,15 +11,20 @@ type Personality struct {
 	Type    string `db:"type"`
 }
 
-func NewPersonality(ctx context.Context, setter func(p *Personality)) *ModelConnector {
+func NewPersonality(ctx context.Context, setter ...func(p *Personality)) *ModelConnector {
 	personality := &Personality{
 		Type: "introvert",
 	}
 
-	setter(personality)
+	//setter(personality)
 
 	return &ModelConnector{
 		Model: personality,
+		setter: func() {
+			for _, s := range setter {
+				s(personality)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.Personalities = append(f.Personalities, personality)
 		},

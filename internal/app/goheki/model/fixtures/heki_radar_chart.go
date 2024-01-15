@@ -11,16 +11,21 @@ type HekiRadarChart struct {
 	NU      int64  `db:"nu"`
 }
 
-func NewHekiRadarChart(ctx context.Context, setter func(h *HekiRadarChart)) *ModelConnector {
+func NewHekiRadarChart(ctx context.Context, setter ...func(h *HekiRadarChart)) *ModelConnector {
 	hekiRadarChart := &HekiRadarChart{
 		AI: 1,
 		NU: 1,
 	}
 
-	setter(hekiRadarChart)
+	//setter(hekiRadarChart)
 
 	return &ModelConnector{
 		Model: hekiRadarChart,
+		setter: func() {
+			for _, s := range setter {
+				s(hekiRadarChart)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.HekiRadarCharts = append(f.HekiRadarCharts, hekiRadarChart)
 		},

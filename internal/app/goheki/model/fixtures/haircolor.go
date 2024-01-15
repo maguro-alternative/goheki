@@ -10,15 +10,20 @@ type HairColor struct {
 	Color   string `db:"color"`
 }
 
-func NewHairColor(ctx context.Context, setter func(h *HairColor)) *ModelConnector {
+func NewHairColor(ctx context.Context, setter ...func(h *HairColor)) *ModelConnector {
 	hairColor := &HairColor{
 		Color: "black",
 	}
 
-	setter(hairColor)
+	//setter(hairColor)
 
 	return &ModelConnector{
 		Model: hairColor,
+		setter: func() {
+			for _, s := range setter {
+				s(hairColor)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.HairColors = append(f.HairColors, hairColor)
 		},

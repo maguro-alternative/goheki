@@ -14,17 +14,22 @@ type Source struct {
 	Type string `db:"type"`
 }
 
-func NewSource(ctx context.Context, setter func(s *Source)) *ModelConnector {
+func NewSource(ctx context.Context, setter ...func(s *Source)) *ModelConnector {
 	source := &Source{
 		Name: "test",
 		Url:  "https://example.com",
 		Type: "2",
 	}
 
-	setter(source)
+	//setter(source)
 
 	return &ModelConnector{
 		Model: source,
+		setter: func() {
+			for _, s := range setter {
+				s(source)
+			}
+		},
 		addToFixture: func(t *testing.T, f *Fixture) {
 			f.Sources = append(f.Sources, source)
 		},
