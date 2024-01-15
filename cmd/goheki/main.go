@@ -85,6 +85,9 @@ func main() {
 	mux.Handle("/api/hairstyle/update", middleChain.Then(hairstyle.NewUpdateHandler(indexService)))
 	mux.Handle("/api/hairstyle/delete", middleChain.Then(hairstyle.NewDeleteHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/create", middleChain.Then(hekiradarchart.NewCreateHandler(indexService)))
+	mux.Handle("/api/heki_radar_chart/read", middleChain.Then(hekiradarchart.NewReadHandler(indexService)))
+	mux.Handle("/api/heki_radar_chart/update", middleChain.Then(hekiradarchart.NewUpdateHandler(indexService)))
+	mux.Handle("/api/heki_radar_chart/delete", middleChain.Then(hekiradarchart.NewDeleteHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
