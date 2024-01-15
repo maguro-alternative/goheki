@@ -63,42 +63,52 @@ func main() {
 	mux.Handle("/api/bwh/read", middleChain.Then(bwh.NewReadHandler(indexService)))
 	mux.Handle("/api/bwh/update", middleChain.Then(bwh.NewUpdateHandler(indexService)))
 	mux.Handle("/api/bwh/delete", middleChain.Then(bwh.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/entry/create", middleChain.Then(entry.NewCreateHandler(indexService)))
 	mux.Handle("/api/entry/read", middleChain.Then(entry.NewReadHandler(indexService)))
 	mux.Handle("/api/entry/update", middleChain.Then(entry.NewUpdateHandler(indexService)))
 	mux.Handle("/api/entry/delete", middleChain.Then(entry.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/tag/create", middleChain.Then(tag.NewCreateHandler(indexService)))
 	mux.Handle("/api/tag/read", middleChain.Then(tag.NewReadHandler(indexService)))
 	mux.Handle("/api/tag/update", middleChain.Then(tag.NewUpdateHandler(indexService)))
 	mux.Handle("/api/tag/delete", middleChain.Then(tag.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/entry_tag/create", middleChain.Then(entry_tag.NewCreateHandler(indexService)))
 	mux.Handle("/api/entry_tag/read", middleChain.Then(entry_tag.NewReadHandler(indexService)))
 	mux.Handle("/api/entry_tag/update", middleChain.Then(entry_tag.NewUpdateHandler(indexService)))
 	mux.Handle("/api/entry_tag/delete", middleChain.Then(entry_tag.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/haircolor/create", middleChain.Then(haircolor.NewCreateHandler(indexService)))
 	mux.Handle("/api/haircolor/read", middleChain.Then(haircolor.NewReadHandler(indexService)))
 	mux.Handle("/api/haircolor/update", middleChain.Then(haircolor.NewUpdateHandler(indexService)))
 	mux.Handle("/api/haircolor/delete", middleChain.Then(haircolor.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/hairlength/create", middleChain.Then(hairlength.NewCreateHandler(indexService)))
 	mux.Handle("/api/hairlength/read", middleChain.Then(hairlength.NewReadHandler(indexService)))
 	mux.Handle("/api/hairlength/update", middleChain.Then(hairlength.NewUpdateHandler(indexService)))
 	mux.Handle("/api/hairlength/delete", middleChain.Then(hairlength.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/hairstyle/create", middleChain.Then(hairstyle.NewCreateHandler(indexService)))
 	mux.Handle("/api/hairstyle/read", middleChain.Then(hairstyle.NewReadHandler(indexService)))
 	mux.Handle("/api/hairstyle/update", middleChain.Then(hairstyle.NewUpdateHandler(indexService)))
 	mux.Handle("/api/hairstyle/delete", middleChain.Then(hairstyle.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/heki_radar_chart/create", middleChain.Then(hekiradarchart.NewCreateHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/read", middleChain.Then(hekiradarchart.NewReadHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/update", middleChain.Then(hekiradarchart.NewUpdateHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/delete", middleChain.Then(hekiradarchart.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/link/create", middleChain.Then(link.NewCreateHandler(indexService)))
 	mux.Handle("/api/link/read", middleChain.Then(link.NewReadHandler(indexService)))
 	mux.Handle("/api/link/update", middleChain.Then(link.NewUpdateHandler(indexService)))
 	mux.Handle("/api/link/delete", middleChain.Then(link.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/personality/create", middleChain.Then(personality.NewCreateHandler(indexService)))
 	mux.Handle("/api/personality/read", middleChain.Then(personality.NewReadHandler(indexService)))
 	mux.Handle("/api/personality/update", middleChain.Then(personality.NewUpdateHandler(indexService)))
 	mux.Handle("/api/personality/delete", middleChain.Then(personality.NewDeleteHandler(indexService)))
+
 	mux.Handle("/api/source/create", middleChain.Then(source.NewCreateHandler(indexService)))
 	mux.Handle("/api/source/read", middleChain.Then(source.NewReadHandler(indexService)))
 	mux.Handle("/api/source/update", middleChain.Then(source.NewUpdateHandler(indexService)))
