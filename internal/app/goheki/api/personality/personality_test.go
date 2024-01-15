@@ -151,7 +151,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
@@ -171,7 +171,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
@@ -191,7 +191,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
@@ -201,6 +201,9 @@ func TestReadPersonalityHandler(t *testing.T) {
 		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
 		assert.Equal(t, f.Personalities[1].Type, res[1].Type)
 	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdatePersonalityHandler(t *testing.T) {
