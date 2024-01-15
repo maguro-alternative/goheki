@@ -157,7 +157,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []HairStyle
@@ -173,7 +173,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []HairStyle
@@ -189,7 +189,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []HairStyle
@@ -198,6 +198,9 @@ func TestReadHairStyleHandler(t *testing.T) {
 		assert.Equal(t, 2, len(res))
 		assert.Equal(t, hairStyles, res)
 	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateHairStyleHandler(t *testing.T) {
