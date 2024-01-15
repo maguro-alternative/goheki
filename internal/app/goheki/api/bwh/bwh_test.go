@@ -200,7 +200,7 @@ func TestReadBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []BWH
@@ -217,7 +217,7 @@ func TestReadBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []BWH
@@ -234,7 +234,7 @@ func TestReadBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []BWH
@@ -242,6 +242,9 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res)
 	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateBEHHandler(t *testing.T) {
