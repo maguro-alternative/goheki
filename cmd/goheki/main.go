@@ -15,6 +15,7 @@ import (
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/hairlength"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/hairstyle"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/heki_radar_chart"
+	"github.com/maguro-alternative/goheki/internal/app/goheki/api/link"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/api/tag"
 
 	_ "embed"
@@ -88,6 +89,10 @@ func main() {
 	mux.Handle("/api/heki_radar_chart/read", middleChain.Then(hekiradarchart.NewReadHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/update", middleChain.Then(hekiradarchart.NewUpdateHandler(indexService)))
 	mux.Handle("/api/heki_radar_chart/delete", middleChain.Then(hekiradarchart.NewDeleteHandler(indexService)))
+	mux.Handle("/api/link/create", middleChain.Then(link.NewCreateHandler(indexService)))
+	mux.Handle("/api/link/read", middleChain.Then(link.NewReadHandler(indexService)))
+	mux.Handle("/api/link/update", middleChain.Then(link.NewUpdateHandler(indexService)))
+	mux.Handle("/api/link/delete", middleChain.Then(link.NewDeleteHandler(indexService)))
 
 	log.Print("Server listening on port http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
