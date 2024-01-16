@@ -37,6 +37,12 @@ func TestCreateHairLengthHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "long"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -62,12 +68,12 @@ func TestCreateHairLengthHandler(t *testing.T) {
 	// テストデータの準備
 	heirLengths := []HairLength{
 		{
-			EntryID: f.Entrys[0].ID,
-			Length:  "short",
+			EntryID:          *f.Entrys[0].ID,
+			HairLengthTypeID: *f.HairLengthTypes[0].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Length:  "long",
+			EntryID:          *f.Entrys[1].ID,
+			HairLengthTypeID: *f.HairLengthTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -110,6 +116,12 @@ func TestReadHairLengthHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "long"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -120,7 +132,7 @@ func TestReadHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "short"
+			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -132,19 +144,19 @@ func TestReadHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "long"
+			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	heirLengths := []HairLength{
 		{
-			EntryID: f.Entrys[0].ID,
-			Length:  f.HairLengths[0].Length,
+			EntryID:          *f.Entrys[0].ID,
+			HairLengthTypeID: *f.HairLengthTypes[0].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Length:  f.HairLengths[1].Length,
+			EntryID:          *f.Entrys[1].ID,
+			HairLengthTypeID: *f.HairLengthTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -220,6 +232,12 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "long"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -230,7 +248,7 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "short"
+			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -242,19 +260,19 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "long"
+			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	updateHeirLengths := []HairLength{
 		{
-			EntryID: f.Entrys[0].ID,
-			Length:  "long",
+			EntryID:          *f.Entrys[0].ID,
+			HairLengthTypeID: *f.HairLengthTypes[1].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Length:  "short",
+			EntryID:          *f.Entrys[1].ID,
+			HairLengthTypeID: *f.HairLengthTypes[0].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -297,6 +315,12 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(s *fixtures.HairLengthType) {
+			s.Length = "long"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -307,7 +331,7 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "short"
+			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -319,7 +343,7 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.Length = "long"
+			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
 		}))),
 	)
 
