@@ -6,8 +6,8 @@ import (
 )
 
 type HairStyleType struct {
-	ID *int64 `db:"id"`
-	Style   string `db:"style"`
+	ID    *int64 `db:"id"`
+	Style string `db:"style"`
 }
 
 func NewHairStyleType(ctx context.Context, setter ...func(h *HairStyleType)) *ModelConnector {
@@ -34,15 +34,14 @@ func NewHairStyleType(ctx context.Context, setter ...func(h *HairStyleType)) *Mo
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			r, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hairstyle (style) VALUES (:style) RETURNING id", hairStyleType)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
+			r := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO hairstyle_type (style) VALUES ($1) RETURNING id`,
+				hairStyleType.Style,
+			).Scan(&hairStyleType.ID)
+			if r != nil {
+				t.Fatalf("insert error: %v", r)
 			}
-			id, err := r.LastInsertId()
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			hairStyleType.ID = &id
 		},
 	}
 }
