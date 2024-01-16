@@ -29,10 +29,10 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		INSERT INTO hairstyle (
 			entry_id,
-			style
+			style_id
 		) VALUES (
 			:entry_id,
-			:style
+			:style_id
 		)
 	`
 	if err := json.NewDecoder(r.Body).Decode(&hairStyles); err != nil {
@@ -67,7 +67,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		SELECT
 			entry_id,
-			style
+			style_id
 		FROM
 			hairstyle
 		WHERE
@@ -78,7 +78,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		query = `
 			SELECT
 				entry_id,
-				style
+				style_id
 			FROM
 				hairstyle
 		`
@@ -95,7 +95,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		query = `
 			SELECT
 				entry_id,
-				style
+				style_id
 			FROM
 				hairstyle
 			WHERE
@@ -145,7 +145,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			hairstyle
 		SET
-			style = :style
+			style_id = :style_id
 		WHERE
 			entry_id = :entry_id
 	`

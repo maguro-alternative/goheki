@@ -1,8 +1,8 @@
 package hairstyle
 
 type HairStyle struct {
-	EntryID *int64 `db:"entry_id"`
-	Style   string `db:"style"`
+	EntryID int64 `db:"entry_id"`
+	StyleID int64 `db:"style_id"`
 }
 
 type IDs struct {

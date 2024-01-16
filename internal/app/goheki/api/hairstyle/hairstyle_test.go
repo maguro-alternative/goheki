@@ -57,17 +57,23 @@ func TestCreateHairStyleHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ショートヘアー"
+		}),
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ウェービーロングヘアー"
+		}),
 	)
 
 	// テストデータの準備
 	hairStyles := []HairStyle{
 		{
-			EntryID: f.Entrys[0].ID,
-			Style:   "ショートカット",
+			EntryID: *f.Entrys[0].ID,
+			StyleID: *f.HairStyleTypes[0].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Style:   "ウェービーロングヘアー",
+			EntryID: *f.Entrys[1].ID,
+			StyleID: *f.HairStyleTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -109,6 +115,12 @@ func TestReadHairStyleHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ショートヘアー"
+		}),
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ウェービーロングヘアー"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -119,7 +131,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ショートカット"
+			s.StyleID = f.HairStyleTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -131,19 +143,19 @@ func TestReadHairStyleHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ウェービーロングヘアー"
+			s.StyleID = f.HairStyleTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	hairStyles := []HairStyle{
 		{
-			EntryID: f.Entrys[0].ID,
-			Style:   f.HairStyles[0].Style,
+			EntryID: *f.Entrys[0].ID,
+			StyleID: *f.HairStyleTypes[0].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Style:   f.HairStyles[1].Style,
+			EntryID: *f.Entrys[1].ID,
+			StyleID: *f.HairStyleTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -219,6 +231,12 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ショートヘアー"
+		}),
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ウェービーロングヘアー"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -229,7 +247,7 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ショートカット"
+			s.StyleID = f.HairStyleTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -241,19 +259,19 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ウェービーロングヘアー"
+			s.StyleID = f.HairStyleTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	updateHairStyles := []HairStyle{
 		{
-			EntryID: f.Entrys[0].ID,
-			Style:   "ロングヘアー",
+			EntryID: *f.Entrys[0].ID,
+			StyleID: *f.HairStyleTypes[1].ID,
 		},
 		{
-			EntryID: f.Entrys[1].ID,
-			Style:   "ショートヘアー",
+			EntryID: *f.Entrys[1].ID,
+			StyleID: *f.HairStyleTypes[0].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -295,6 +313,12 @@ func TestDeleteHairStyleHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ショートヘアー"
+		}),
+		fixtures.NewHairStyleType(ctx, func(s *fixtures.HairStyleType) {
+			s.Style = "ウェービーロングヘアー"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
@@ -305,7 +329,7 @@ func TestDeleteHairStyleHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ショートカット"
+			s.StyleID = f.HairStyleTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -317,7 +341,7 @@ func TestDeleteHairStyleHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairStyle(ctx, func(s *fixtures.HairStyle) {
-			s.Style = "ウェービーロングヘアー"
+			s.StyleID = f.HairStyleTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
