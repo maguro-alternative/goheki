@@ -6,8 +6,8 @@ import (
 )
 
 type HairLength struct {
-	EntryID          *int64 `db:"entry_id"`
-	HairLengthTypeID *int64 `db:"hairlength_type_id"`
+	EntryID          int64 `db:"entry_id"`
+	HairLengthTypeID int64 `db:"hairlength_type_id"`
 }
 
 func NewHairLength(ctx context.Context, setter ...func(h *HairLength)) *ModelConnector {
@@ -29,7 +29,7 @@ func NewHairLength(ctx context.Context, setter ...func(h *HairLength)) *ModelCon
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				heirLength.EntryID = entry.ID
+				heirLength.EntryID = *entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, heirLength)
 			}

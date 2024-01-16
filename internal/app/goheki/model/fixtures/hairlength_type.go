@@ -32,15 +32,18 @@ func NewHairLengthType(ctx context.Context, setter ...func(h *HairLengthType)) *
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			r, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hairlength_type (length) VALUES (:length) RETURNING id", heirLengthType)
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
+			r := f.DBv1.QueryRowxContext(
+				ctx,
+				`INSERT INTO hairlength_type (
+					length
+				) VALUES (
+					$1
+				) RETURNING id`,
+				heirLengthType.Length,
+			).Scan(&heirLengthType.ID)
+			if r != nil {
+				t.Fatalf("insert error: %v", r)
 			}
-			id, err := r.LastInsertId()
-			if err != nil {
-				t.Fatalf("insert error: %v", err)
-			}
-			heirLengthType.ID = &id
 		},
 	}
 }

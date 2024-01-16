@@ -57,7 +57,7 @@ func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 				hairColor.EntryID = *entry.ID
 			case *HairLength:
 				hairLength := connectingModel.(*HairLength)
-				hairLength.EntryID = entry.ID
+				hairLength.EntryID = *entry.ID
 			case *HairStyle:
 				hairStyle := connectingModel.(*HairStyle)
 				hairStyle.EntryID = entry.ID
