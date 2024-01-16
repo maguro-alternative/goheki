@@ -57,30 +57,53 @@ CREATE TABLE IF NOT EXISTS bwh (
     weight INTEGER,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
 );
+/*髪の長さの種類*/
+CREATE TABLE IF NOT EXISTS hairlength_type (
+    id SERIAL PRIMARY KEY,
+    length TEXT NOT NULL
+);
 /*髪の長さ*/
 CREATE TABLE IF NOT EXISTS hairlength (
     entry_id INTEGER PRIMARY KEY,
-    length TEXT,
-    FOREIGN KEY (entry_id) REFERENCES entry (id)
+    hairlength_type_id INTEGER NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id),
+    FOREIGN KEY (hairlength_type_id) REFERENCES hairlength_type (id)
+);
+/*髪の色の種類*/
+CREATE TABLE IF NOT EXISTS haircolor_type (
+    id SERIAL PRIMARY KEY,
+    color TEXT NOT NULL
 );
 /*髪色*/
 CREATE TABLE IF NOT EXISTS haircolor (
     entry_id INTEGER PRIMARY KEY,
-    color TEXT,
-    FOREIGN KEY (entry_id) REFERENCES entry (id)
+    color_id INTEGER NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id),
+    FOREIGN KEY (color_id) REFERENCES haircolor_type (id)
+);
+/*髪型の種類*/
+CREATE TABLE IF NOT EXISTS hairstyle_type (
+    id SERIAL PRIMARY KEY,
+    style TEXT NOT NULL
 );
 /*髪型*/
 CREATE TABLE IF NOT EXISTS hairstyle (
     entry_id INTEGER PRIMARY KEY,
-    style TEXT,
-    FOREIGN KEY (entry_id) REFERENCES entry (id)
+    style_id INTEGER NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id),
+    FOREIGN KEY (style_id) REFERENCES hairstyle_type (id)
+);
+/*性格の種類*/
+CREATE TABLE IF NOT EXISTS personality_type (
+    id SERIAL PRIMARY KEY,
+    type TEXT NOT NULL
 );
 /*性格*/
 CREATE TABLE IF NOT EXISTS personality (
-    id SERIAL NOT NULL PRIMARY KEY,
-    entry_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    FOREIGN KEY (entry_id) REFERENCES entry (id)
+    entry_id INTEGER PRIMARY KEY,
+    type_id INTEGER NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id),
+    FOREIGN KEY (type_id) REFERENCES personality_type (id)
 );
 /*urlリンク*/
 CREATE TABLE IF NOT EXISTS link (
@@ -91,4 +114,15 @@ CREATE TABLE IF NOT EXISTS link (
     nsfw BOOLEAN NOT NULL DEFAULT FALSE,
     darkness BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (entry_id) REFERENCES entry (id)
+);
+CREATE TABLE IF NOT EXISTS eyecolor_type (
+    id SERIAL NOT NULL PRIMARY KEY,
+    color TEXT NOT NULL
+);
+/*目の色*/
+CREATE TABLE IF NOT EXISTS eyecolor (
+    entry_id INTEGER PRIMARY KEY,
+    color_id INTEGER NOT NULL,
+    FOREIGN KEY (entry_id) REFERENCES entry (id),
+    FOREIGN KEY (color_id) REFERENCES eyecolor_type (id)
 );
