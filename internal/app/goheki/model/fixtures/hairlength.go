@@ -6,14 +6,12 @@ import (
 )
 
 type HairLength struct {
-	EntryID *int64 `db:"entry_id"`
-	Length  string  `db:"length"`
+	EntryID          *int64 `db:"entry_id"`
+	HairLengthTypeID *int64 `db:"hairlength_type_id"`
 }
 
 func NewHairLength(ctx context.Context, setter ...func(h *HairLength)) *ModelConnector {
-	heirLength := &HairLength{
-		Length: "long",
-	}
+	heirLength := &HairLength{}
 
 	//setter(heirLength)
 
@@ -37,7 +35,7 @@ func NewHairLength(ctx context.Context, setter ...func(h *HairLength)) *ModelCon
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
-			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hairlength (entry_id, length) VALUES (:entry_id, :length)", heirLength)
+			_, err := f.DBv1.NamedExecContext(ctx, "INSERT INTO hairlength (entry_id, hairlength_type_id) VALUES (:entry_id, :hairlength_type_id)", heirLength)
 			if err != nil {
 				t.Fatalf("insert error: %v", err)
 			}

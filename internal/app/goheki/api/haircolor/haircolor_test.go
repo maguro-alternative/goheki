@@ -57,17 +57,20 @@ func TestCreateHairColorHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
+		fixtures.NewHairColorType(ctx, func(s *fixtures.HairColorType) {
+			s.Color = "銀"
+		}),
 	)
 
 	// テストデータの準備
 	hairColors := []HairColor{
 		{
 			EntryID: *f.Entrys[0].ID,
-			Color:   "銀",
+			ColorID: *f.HairColorTypes[0].ID,
 		},
 		{
 			EntryID: *f.Entrys[1].ID,
-			Color:   "銀",
+			ColorID: *f.HairColorTypes[0].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -122,9 +125,7 @@ func TestReadHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image1.png"
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
-			s.Color = "銀"
-		}))),
+		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
@@ -134,9 +135,16 @@ func TestReadHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image2.png"
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+		})),
+		fixtures.NewHairColorType(ctx, func(s *fixtures.HairColorType) {
 			s.Color = "銀"
-		}))),
+		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[0].ID
+		})),
+		fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[1].ID
+			s.ColorID = *f.HairColorTypes[0].ID
+		}),
 	)
 
 	// テストデータの準備
@@ -181,7 +189,7 @@ func TestReadHairColorHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(res))
-		assert.Equal(t, "銀", res[0].Color)
+		assert.Equal(t, f.HairColors[0].ColorID, res[0].ColorID)
 	})
 
 	t.Run("haircolor2件取得", func(t *testing.T) {
@@ -201,8 +209,8 @@ func TestReadHairColorHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "銀", res[0].Color)
-		assert.Equal(t, "銀", res[1].Color)
+		assert.Equal(t, f.HairColors[0].ColorID, res[0].ColorID)
+		assert.Equal(t, f.HairColors[1].ColorID, res[1].ColorID)
 	})
 
 	// ロールバック
@@ -234,9 +242,7 @@ func TestUpdateHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image1.png"
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
-			s.Color = "銀"
-		}))),
+		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
@@ -246,20 +252,30 @@ func TestUpdateHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image2.png"
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+		})),
+		fixtures.NewHairColorType(ctx, func(s *fixtures.HairColorType) {
 			s.Color = "銀"
-		}))),
+		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[0].ID
+		})),
+		fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[1].ID
+			s.ColorID = *f.HairColorTypes[0].ID
+		}),
+		fixtures.NewHairColorType(ctx, func(s *fixtures.HairColorType) {
+			s.Color = "金"
+		}),
 	)
 
 	// テストデータの準備
 	updateHairColors := []HairColor{
 		{
 			EntryID: *f.Entrys[0].ID,
-			Color:   "金",
+			ColorID: *f.HairColorTypes[1].ID,
 		},
 		{
 			EntryID: *f.Entrys[1].ID,
-			Color:   "金",
+			ColorID: *f.HairColorTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -314,9 +330,7 @@ func TestDeleteHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image1.png"
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
-			s.Color = "銀"
-		}))),
+		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
@@ -326,9 +340,16 @@ func TestDeleteHairColorHandler(t *testing.T) {
 			s.Image = "https://example.com/image2.png"
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
-		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+		})),
+		fixtures.NewHairColorType(ctx, func(s *fixtures.HairColorType) {
 			s.Color = "銀"
-		}))),
+		}).Connect(fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[0].ID
+		})),
+		fixtures.NewHairColor(ctx, func(s *fixtures.HairColor) {
+			s.EntryID = *f.Entrys[1].ID
+			s.ColorID = *f.HairColorTypes[0].ID
+		}),
 	)
 
 	// テストデータの準備
@@ -346,8 +367,6 @@ func TestDeleteHairColorHandler(t *testing.T) {
 
 		// レスポンスの準備
 		w := httptest.NewRecorder()
-		// トランザクションのロールバック
-		tx.RollbackCtx(ctx)
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
 		// レスポンスの検証
@@ -357,4 +376,6 @@ func TestDeleteHairColorHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}, res.IDs)
 	})
+	// トランザクションのロールバック
+	tx.RollbackCtx(ctx)
 }

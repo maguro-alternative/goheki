@@ -5,50 +5,45 @@ import (
 	"testing"
 )
 
-type Personality struct {
-	EntryID *int64 `db:"entry_id"`
+type PersonalityType struct {
+	ID      *int64 `db:"id"`
 	Type    string `db:"type"`
 }
 
-func NewPersonality(ctx context.Context, setter ...func(p *Personality)) *ModelConnector {
-	personality := &Personality{
+func NewPersonalityType(ctx context.Context, setter ...func(p *PersonalityType)) *ModelConnector {
+	personalityType := &PersonalityType{
 		Type: "introvert",
 	}
 
 	//setter(personality)
 
 	return &ModelConnector{
-		Model: personality,
+		Model: personalityType,
 		setter: func() {
 			for _, s := range setter {
-				s(personality)
+				s(personalityType)
 			}
 		},
 		addToFixture: func(t *testing.T, f *Fixture) {
-			f.Personalities = append(f.Personalities, personality)
+			f.PersonalityTypes = append(f.PersonalityTypes, personalityType)
 		},
 		connect: func(t *testing.T, f *Fixture, connectingModel interface{}) {
 			switch connectingModel.(type) {
-			case *Entry:
-				entry := connectingModel.(*Entry)
-				personality.EntryID = entry.ID
 			default:
-				t.Fatalf("%T cannot be connected to %T", connectingModel, personality)
+				t.Fatalf("%T cannot be connected to %T", connectingModel, personalityType)
 			}
 		},
 		insertTable: func(t *testing.T, f *Fixture) {
+			// 連番されるIDをセットする
 			result := f.DBv1.QueryRowxContext(
 				ctx,
 				`INSERT INTO personality (
-					entry_id,
 					type
 				) VALUES (
-					$1,
-					$2
-				)`,
-				personality.EntryID,
-				personality.Type,
-			)
+					$1
+				) RETURNING id`,
+				personalityType.Type,
+			).Scan(&personalityType.ID)
 			if result != nil {
 				t.Fatalf("insert error: %v", result)
 			}

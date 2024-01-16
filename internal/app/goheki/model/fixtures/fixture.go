@@ -7,17 +7,21 @@ import (
 )
 
 type Fixture struct {
-	Entrys          []*Entry
-	EntryTags       []*EntryTag
-	Tags            []*Tag
-	Sources         []*Source
-	BWHs            []*BWH
-	HekiRadarCharts []*HekiRadarChart
-	HairLengths     []*HairLength
-	HairColors      []*HairColor
-	HairStyles      []*HairStyle
-	Personalities   []*Personality
-	Links           []*Link
+	Entrys           []*Entry
+	EntryTags        []*EntryTag
+	Tags             []*Tag
+	Sources          []*Source
+	BWHs             []*BWH
+	HekiRadarCharts  []*HekiRadarChart
+	HairLengths      []*HairLength
+	HairLengthTypes  []*HairLengthType
+	HairColors       []*HairColor
+	HairColorTypes   []*HairColorType
+	HairStyles       []*HairStyle
+	HairStyleTypes   []*HairStyleType
+	Personalities    []*Personality
+	PersonalityTypes []*PersonalityType
+	Links            []*Link
 
 	DBv1 db.Driver
 }
