@@ -37,7 +37,7 @@ func NewPersonalityType(ctx context.Context, setter ...func(p *PersonalityType))
 			// 連番されるIDをセットする
 			result := f.DBv1.QueryRowxContext(
 				ctx,
-				`INSERT INTO personality (
+				`INSERT INTO personality_type (
 					type
 				) VALUES (
 					$1

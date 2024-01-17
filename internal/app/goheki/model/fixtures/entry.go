@@ -48,7 +48,7 @@ func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 				bwh.EntryID = entry.ID
 			case *Personality:
 				personality := connectingModel.(*Personality)
-				personality.EntryID = entry.ID
+				personality.EntryID = *entry.ID
 			case *Link:
 				link := connectingModel.(*Link)
 				link.EntryID = entry.ID
