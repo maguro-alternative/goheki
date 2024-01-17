@@ -7,13 +7,11 @@ import (
 
 type Personality struct {
 	EntryID *int64 `db:"entry_id"`
-	Type    string `db:"type"`
+	TypeID  *int64 `db:"type_id"`
 }
 
 func NewPersonality(ctx context.Context, setter ...func(p *Personality)) *ModelConnector {
-	personality := &Personality{
-		Type: "introvert",
-	}
+	personality := &Personality{}
 
 	//setter(personality)
 
@@ -41,13 +39,13 @@ func NewPersonality(ctx context.Context, setter ...func(p *Personality)) *ModelC
 				ctx,
 				`INSERT INTO personality (
 					entry_id,
-					type
+					type_id
 				) VALUES (
 					$1,
 					$2
 				)`,
 				personality.EntryID,
-				personality.Type,
+				personality.TypeID,
 			)
 			if result != nil {
 				t.Fatalf("insert error: %v", result)
