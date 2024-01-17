@@ -1,9 +1,8 @@
 package personality
 
 type Personality struct {
-	ID      *int64 `db:"id"`
 	EntryID *int64 `db:"entry_id"`
-	Type    string `db:"type"`
+	TypeID  *int64 `db:"type_id"`
 }
 
 type IDs struct {

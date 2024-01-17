@@ -29,10 +29,10 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := `
 		INSERT INTO personality (
 			entry_id,
-			type
+			type_id
 		) VALUES (
 			:entry_id,
-			:type
+			:type_id
 		)
 	`
 	err := json.NewDecoder(r.Body).Decode(&personalities)
@@ -68,21 +68,19 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var personalities []Personality
 	query := `
 		SELECT
-			id,
 			entry_id,
-			type
+			type_id
 		FROM
 			personality
 		WHERE
-			id IN (?)
+			entry_id IN (?)
 	`
-	queryIDs, ok := r.URL.Query()["id"]
+	queryIDs, ok := r.URL.Query()["entry_id"]
 	if !ok {
 		query = `
 			SELECT
-				id,
 				entry_id,
-				type
+				type_id
 			FROM
 				personality
 		`
@@ -98,13 +96,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if len(queryIDs) == 1 {
 		query = `
 			SELECT
-				id,
 				entry_id,
-				type
+				type_id
 			FROM
 				personality
 			WHERE
-				id = $1
+				entry_id = $1
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &personalities, query, queryIDs[0])
 		if err != nil {
@@ -150,10 +147,9 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UPDATE
 			personality
 		SET
-			entry_id = :entry_id,
-			type = :type
+			type_id = :type_id
 		WHERE
-			id = :id
+			entry_id = :entry_id
 	`
 	err := json.NewDecoder(r.Body).Decode(&personalities)
 	if err != nil {
@@ -190,7 +186,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		DELETE FROM
 			personality
 		WHERE
-			id IN (?)
+			entry_id IN (?)
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
@@ -203,7 +199,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			DELETE FROM
 				personality
 			WHERE
-				id = $1
+				entry_id = $1
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {

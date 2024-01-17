@@ -37,6 +37,12 @@ func TestCreatePersonalityHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "大和撫子"
+		}),
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "天然"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
@@ -67,11 +73,11 @@ func TestCreatePersonalityHandler(t *testing.T) {
 		personalitys := []Personality{
 			{
 				EntryID: f.Entrys[0].ID,
-				Type:    "jun",
+				TypeID:  f.PersonalityTypes[0].ID,
 			},
 			{
 				EntryID: f.Entrys[1].ID,
-				Type:    "ten",
+				TypeID:  f.PersonalityTypes[1].ID,
 			},
 		}
 		// テストの実行
@@ -111,6 +117,12 @@ func TestReadPersonalityHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "大和撫子"
+		}),
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "天然"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
@@ -121,7 +133,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "jun"
+			s.TypeID = *f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -133,7 +145,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "ten"
+			s.TypeID = *f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
@@ -158,13 +170,16 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities, res)
+		assert.Equal(t, f.Personalities[0].EntryID, *res[0].EntryID)
+		assert.Equal(t, f.Personalities[1].EntryID, *res[1].EntryID)
+		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, *res[1].TypeID)
 	})
 
 	t.Run("personality1件取得", func(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?id=%d", *f.Personalities[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?entry_id=%d", f.Personalities[0].EntryID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -178,13 +193,13 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
+		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
 	})
 
 	t.Run("personality2件取得", func(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?id=%d&id=%d", *f.Personalities[0].ID, *f.Personalities[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality/read?entry_id=%d&entry_id=%d", f.Personalities[0].EntryID, f.Personalities[1].EntryID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -198,8 +213,8 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].Type, res[0].Type)
-		assert.Equal(t, f.Personalities[1].Type, res[1].Type)
+		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, *res[1].TypeID)
 	})
 
 	// ロールバック
@@ -221,6 +236,12 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "大和撫子"
+		}),
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "天然"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
@@ -231,7 +252,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "jun"
+			s.TypeID = *f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -243,7 +264,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "ten"
+			s.TypeID = *f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
@@ -254,14 +275,12 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 	t.Run("personality更新", func(t *testing.T) {
 		personalitys := []Personality{
 			{
-				ID:      f.Personalities[0].ID,
 				EntryID: f.Entrys[0].ID,
-				Type:    "tun",
+				TypeID:  f.PersonalityTypes[1].ID,
 			},
 			{
-				ID:      f.Personalities[1].ID,
 				EntryID: f.Entrys[1].ID,
-				Type:    "dere",
+				TypeID:  f.PersonalityTypes[0].ID,
 			},
 		}
 		// テストの実行
@@ -282,7 +301,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, personalitys[0].Type, res[0].Type)
+		assert.Equal(t, personalitys[0].TypeID, res[0].TypeID)
 	})
 }
 
@@ -301,6 +320,12 @@ func TestDeletePersonalityHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "大和撫子"
+		}),
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "天然"
+		}),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
@@ -311,7 +336,7 @@ func TestDeletePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "jun"
+			s.TypeID = *f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -323,7 +348,7 @@ func TestDeletePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.Type = "ten"
+			s.TypeID = *f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
@@ -333,7 +358,7 @@ func TestDeletePersonalityHandler(t *testing.T) {
 	)
 	t.Run("personality削除", func(t *testing.T) {
 		var delIDs IDs
-		delIDs.IDs = append(delIDs.IDs, *f.Personalities[0].ID)
+		delIDs.IDs = append(delIDs.IDs, f.Personalities[0].TypeID)
 		// テストの実行
 		h := NewDeleteHandler(indexService)
 		pJson, err := json.Marshal(delIDs)
