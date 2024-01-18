@@ -185,4 +185,23 @@ func TestReadEyeColorHandler(t *testing.T) {
 		assert.Equal(t, f.EyeColors[0].EntryID, res[0].EntryID)
 		assert.Equal(t, f.EyeColors[0].ColorID, res[0].ColorID)
 	})
+
+	t.Run("eyecolor2件取得", func(t *testing.T) {
+		// リクエストを作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		assert.NoError(t, err)
+		// レスポンスを作成
+		rr := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(rr, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, rr.Code)
+		var res []EyeColor
+		err = json.NewDecoder(rr.Body).Decode(&res)
+		assert.NoError(t, err)
+		assert.Equal(t, f.EyeColors[0].EntryID, res[0].EntryID)
+		assert.Equal(t, f.EyeColors[1].EntryID, res[1].EntryID)
+		assert.Equal(t, f.EyeColors[0].ColorID, res[0].ColorID)
+		assert.Equal(t, f.EyeColors[1].ColorID, res[1].ColorID)
+	})
 }
