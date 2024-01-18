@@ -224,4 +224,9 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("db error: %v", err))
 	}
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		return
+	}
 }
