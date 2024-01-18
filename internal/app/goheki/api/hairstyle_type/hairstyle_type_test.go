@@ -135,6 +135,25 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 		assert.Equal(t, "short", hairStyleType[0].Style)
 	})
 
+	t.Run("hairstyle_type2件取得", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d&id=%d", *f.HairStyleTypes[0].ID, *f.HairStyleTypes[1].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var hairStyleTypes []HairStyleType
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypes)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(hairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypes[0].Style)
+		assert.Equal(t, "long", hairStyleTypes[1].Style)
+	})
+
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
