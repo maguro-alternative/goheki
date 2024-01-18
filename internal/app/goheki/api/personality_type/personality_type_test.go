@@ -136,6 +136,26 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 		assert.Equal(t, 1, len(res))
 		assert.Equal(t, "大和撫子", res[0].Type)
 	})
+
+	t.Run("personality_type2件取得", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality_type/read?id=%d&id=%d", *f.PersonalityTypes[0].ID, *f.PersonalityTypes[1].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスのデコード
+		var res []PersonalityType
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		// レスポンスの検証
+		assert.Equal(t, 2, len(res))
+		assert.Equal(t, "大和撫子", res[0].Type)
+		assert.Equal(t, "天然", res[1].Type)
+	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
