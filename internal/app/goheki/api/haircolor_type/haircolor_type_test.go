@@ -129,6 +129,29 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		assert.Equal(t, 1, len(res))
 		assert.Equal(t, "black", res[0].Color)
 	})
+
+	t.Run("haircolor_type2件取得", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/haircolor_type/read?id=%d&id=%d", *f.HairColorTypes[0].ID, *f.HairColorTypes[1].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+
+		var res []HairColorType
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 2, len(res))
+		assert.Equal(t, "black", res[0].Color)
+		assert.Equal(t, "blue", res[1].Color)
+	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateHairColorTypeHandler(t *testing.T) {
