@@ -64,6 +64,9 @@ func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 			case *HekiRadarChart:
 				hekiRadarChart := connectingModel.(*HekiRadarChart)
 				hekiRadarChart.EntryID = entry.ID
+			case *EyeColor:
+				eyeColor := connectingModel.(*EyeColor)
+				eyeColor.EntryID = *entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, entry)
 			}
