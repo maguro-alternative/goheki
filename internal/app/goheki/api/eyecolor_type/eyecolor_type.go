@@ -104,7 +104,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				eyecolor_type
 			WHERE
-				id = ?
+				id = $1
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &eyeColorTypes, query, queryIDs[0])
 		if err != nil {
