@@ -135,3 +135,45 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+type UpdateHandler struct {
+	svc *service.IndexService
+}
+
+func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
+	return &UpdateHandler{
+		svc: svc,
+	}
+}
+
+func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		return
+	}
+	var hairStyleTypes []HairStyleType
+	query := `
+		UPDATE
+			hairstyle_type
+		SET
+			style = :style
+		WHERE
+			id = :id
+	`
+	err := json.NewDecoder(r.Body).Decode(&hairStyleTypes)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		return
+	}
+	for _, hairStyleType := range hairStyleTypes {
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hairStyleType)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db error: %v", err))
+			return
+		}
+	}
+	err = json.NewEncoder(w).Encode(&hairStyleTypes)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		return
+	}
+}
