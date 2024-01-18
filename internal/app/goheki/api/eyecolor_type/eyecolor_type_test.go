@@ -135,6 +135,27 @@ func TestReadEyeColorTypeHandler(t *testing.T) {
 		assert.Equal(t, f.EyeColorTypes[0].ID, res[0].ID)
 		assert.Equal(t, f.EyeColorTypes[0].Color, res[0].Color)
 	})
+
+	t.Run("eyecolor_type2件取得", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor_type/read?id=%d&id=%d", *f.EyeColorTypes[0].ID, *f.EyeColorTypes[1].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスのデコード
+		var res []EyeColorType
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		// レスポンスの検証
+		assert.Equal(t, f.EyeColorTypes[0].ID, res[0].ID)
+		assert.Equal(t, f.EyeColorTypes[0].Color, res[0].Color)
+		assert.Equal(t, f.EyeColorTypes[1].ID, res[1].ID)
+		assert.Equal(t, f.EyeColorTypes[1].Color, res[1].Color)
+	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
