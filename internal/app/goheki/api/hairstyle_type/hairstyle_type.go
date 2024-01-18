@@ -177,3 +177,63 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+type DeleteHandler struct {
+	svc *service.IndexService
+}
+
+func NewDeleteHandler(svc *service.IndexService) *DeleteHandler {
+	return &DeleteHandler{
+		svc: svc,
+	}
+}
+
+func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		return
+	}
+	var delIDs IDs
+	query := `
+		DELETE FROM
+			hairstyle_type
+		WHERE
+			id IN (?)
+	`
+	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		return
+	}
+	if len(delIDs.IDs) == 0 {
+		return
+	} else if len(delIDs.IDs) == 1 {
+		query = `
+			DELETE FROM
+				hairstyle_type
+			WHERE
+				id = $1
+		`
+		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
+		if err != nil {
+			log.Fatal(fmt.Sprintf("db error: %v", err))
+			return
+		}
+		return
+	}
+	query, args, err := db.In(query, delIDs.IDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("db error: %v", err))
+		return
+	}
+	query = db.Rebind(len(delIDs.IDs), query)
+	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("db error: %v", err))
+		return
+	}
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		return
+	}
+}
