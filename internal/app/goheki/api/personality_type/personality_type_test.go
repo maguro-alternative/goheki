@@ -221,3 +221,57 @@ func TestUpdatePersonalityTypeHandler(t *testing.T) {
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
+
+func TestDeletePersonalityTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "大和撫子"
+		}),
+		fixtures.NewPersonalityType(ctx, func(s *fixtures.PersonalityType) {
+			s.Type = "天然"
+		}),
+	)
+
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("personality_type削除", func(t *testing.T) {
+		// リクエストの作成
+		delIDs := IDs{
+			IDs: []int64{*f.PersonalityTypes[0].ID, *f.PersonalityTypes[1].ID},
+		}
+		b, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/personality_type/delete", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		handler := NewDeleteHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res IDs
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, delIDs, res)
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
