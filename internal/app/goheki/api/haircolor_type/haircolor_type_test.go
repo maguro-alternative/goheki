@@ -131,4 +131,57 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 	})
 }
 
+func TestUpdateHairColorTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
 
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewHairColorType(ctx, func(h *fixtures.HairColorType) {
+			h.Color = "black"
+		}),
+		fixtures.NewHairColorType(ctx, func(h *fixtures.HairColorType) {
+			h.Color = "blue"
+		}),
+	)
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("haircolor_type更新", func(t *testing.T) {
+		// リクエストの作成
+		hairColorType := []HairColorType{
+			{
+				ID:    f.HairColorTypes[0].ID,
+				Color: "red",
+			},
+			{
+				ID:    f.HairColorTypes[1].ID,
+				Color: "green",
+			},
+		}
+		b, err := json.Marshal(hairColorType)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/haircolor_type/update", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewUpdateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
