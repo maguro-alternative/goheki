@@ -9,6 +9,8 @@ import (
 type Fixture struct {
 	Entrys           []*Entry
 	EntryTags        []*EntryTag
+	EyeColors        []*EyeColor
+	EyeColorTypes    []*EyeColorType
 	Tags             []*Tag
 	Sources          []*Source
 	BWHs             []*BWH
