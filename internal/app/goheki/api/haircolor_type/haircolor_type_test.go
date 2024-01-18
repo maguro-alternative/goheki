@@ -130,3 +130,5 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		assert.Equal(t, "black", res[0].Color)
 	})
 }
+
+
