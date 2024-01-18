@@ -212,3 +212,58 @@ func TestUpdateHairLengthTypeHandler(t *testing.T) {
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
+
+func TestDeleteHairLengthTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(h *fixtures.HairLengthType) {
+			h.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(h *fixtures.HairLengthType) {
+			h.Length = "long"
+		}),
+	)
+
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("hairlength_type削除", func(t *testing.T) {
+		// リクエストの作成
+		delIDs := IDs{
+			IDs: []int64{*f.HairLengthTypes[0].ID, *f.HairLengthTypes[1].ID},
+		}
+		b, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/hairlength_type/delete", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewDeleteHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res IDs
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(res.IDs))
+		assert.Equal(t, *f.HairLengthTypes[0].ID, res.IDs[0])
+		assert.Equal(t, *f.HairLengthTypes[1].ID, res.IDs[1])
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
