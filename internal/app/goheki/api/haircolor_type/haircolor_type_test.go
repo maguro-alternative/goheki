@@ -204,6 +204,14 @@ func TestUpdateHairColorTypeHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res []HairColorType
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 2, len(res))
+		assert.Equal(t, "red", res[0].Color)
+		assert.Equal(t, "green", res[1].Color)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
