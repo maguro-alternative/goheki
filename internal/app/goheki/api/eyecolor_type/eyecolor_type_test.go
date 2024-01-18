@@ -159,3 +159,63 @@ func TestReadEyeColorTypeHandler(t *testing.T) {
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
+
+func TestUpdateEyeColorTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewEyeColorType(ctx, func(s *fixtures.EyeColorType) {
+			s.Color = "black"
+		}),
+		fixtures.NewEyeColorType(ctx, func(s *fixtures.EyeColorType) {
+			s.Color = "blue"
+		}),
+	)
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("eyecolor_type更新", func(t *testing.T) {
+		// リクエストの作成
+		eyeColorType := []EyeColorType{
+			{
+				ID:    f.EyeColorTypes[0].ID,
+				Color: "red",
+			},
+			{
+				ID:    f.EyeColorTypes[1].ID,
+				Color: "green",
+			},
+		}
+		b, err := json.Marshal(eyeColorType)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/eyecolor_type/update", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewUpdateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスのデコード
+		var res []EyeColorType
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		// レスポンスの検証
+		assert.Equal(t, eyeColorType, res)
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
