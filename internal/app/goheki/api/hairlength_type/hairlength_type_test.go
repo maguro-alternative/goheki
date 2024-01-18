@@ -150,3 +150,65 @@ func TestReadHairLengthTypeHandler(t *testing.T) {
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
+
+func TestUpdateHairLengthTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewHairLengthType(ctx, func(h *fixtures.HairLengthType) {
+			h.Length = "short"
+		}),
+		fixtures.NewHairLengthType(ctx, func(h *fixtures.HairLengthType) {
+			h.Length = "long"
+		}),
+	)
+
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("hairlength_type更新", func(t *testing.T) {
+		// リクエストの作成
+		updateHairLengthType := []HairLengthType{
+			{
+				ID:     f.HairLengthTypes[0].ID,
+				Length: "short",
+			},
+			{
+				ID:     f.HairLengthTypes[1].ID,
+				Length: "long",
+			},
+		}
+		b, err := json.Marshal(updateHairLengthType)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/hairlength_type/update", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewUpdateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var hairLengthTypes []HairLengthType
+		err = json.Unmarshal(w.Body.Bytes(), &hairLengthTypes)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(hairLengthTypes))
+		assert.Equal(t, "short", hairLengthTypes[0].Length)
+		assert.Equal(t, "long", hairLengthTypes[1].Length)
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
