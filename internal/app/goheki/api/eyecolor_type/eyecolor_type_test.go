@@ -219,3 +219,56 @@ func TestUpdateEyeColorTypeHandler(t *testing.T) {
 	// ロールバック
 	tx.RollbackCtx(ctx)
 }
+
+func TestDeleteEyeColorTypeHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewEyeColorType(ctx, func(s *fixtures.EyeColorType) {
+			s.Color = "black"
+		}),
+		fixtures.NewEyeColorType(ctx, func(s *fixtures.EyeColorType) {
+			s.Color = "blue"
+		}),
+	)
+	// テスト対象のハンドラを作成
+	var indexService = service.NewIndexService(
+		tx,
+		cookie.Store,
+		env,
+	)
+	t.Run("eyecolor_type削除", func(t *testing.T) {
+		// リクエストの作成
+		delIDs := IDs{
+			IDs: []int64{*f.EyeColorTypes[0].ID, *f.EyeColorTypes[1].ID},
+		}
+		b, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/eyecolor_type/delete", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewDeleteHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスのデコード
+		var res IDs
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		// レスポンスの検証
+		assert.Equal(t, delIDs, res)
+	})
+	// ロールバック
+	tx.RollbackCtx(ctx)
+}
