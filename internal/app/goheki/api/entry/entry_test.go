@@ -22,68 +22,45 @@ import (
 )
 
 func TestCreateEntryHandler(t *testing.T) {
+	ctx := context.Background()
+	env, err := envconfig.NewEnv()
+	assert.NoError(t, err)
+	// データベースに接続
+	indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
+	assert.NoError(t, err)
+	defer cleanup()
+	// トランザクションの開始
+	tx, err := indexDB.BeginTxx(ctx, nil)
+	assert.NoError(t, err)
+	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
+	// データベースの準備
+	f := &fixtures.Fixture{DBv1: tx}
+	f.Build(t,
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "閃乱カグラ"
+			s.Url = "https://example.com/image1.png"
+			s.Type = "anime"
+		}),
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
+			s.Name = "アイドルマスター"
+			s.Url = "https://example.com/image2.png"
+			s.Type = "game"
+		}),
+	)
 	t.Run("entry登録", func(t *testing.T) {
-		ctx := context.Background()
-		env, err := envconfig.NewEnv()
-		assert.NoError(t, err)
-		// データベースに接続
-		indexDB, cleanup, err := db.NewDBV1(ctx, "postgres", env.DatabaseURL)
-		assert.NoError(t, err)
-		defer cleanup()
-		// トランザクションの開始
-		tx, err := indexDB.BeginTxx(ctx, nil)
-		assert.NoError(t, err)
-		fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
-		var ids []int64
-		// テストデータの準備
-		query := `
-			INSERT INTO source (
-				name,
-				url,
-				type
-			) VALUES (
-				:name,
-				:url,
-				:type
-			)
-		`
-		sources := []Source{
-			{
-				Name: "テストソース1",
-				Url:  "https://example.com/image1.png",
-				Type: "anime",
-			},
-			{
-				Name: "テストソース2",
-				Url:  "https://example.com/image2.png",
-				Type: "game",
-			},
-		}
-		for _, source := range sources {
-			_, err = tx.NamedExecContext(ctx, query, source)
-			assert.NoError(t, err)
-		}
-		query = `
-			SELECT
-				id
-			FROM
-				source
-		`
-		err = tx.SelectContext(ctx, &ids, query)
-		assert.NoError(t, err)
 		entrys := []Entry{
 			{
-				SourceID:  ids[0],
-				Name:      "テストエントリ1",
+				SourceID:  *f.Sources[0].ID,
+				Name:      "雪泉",
 				Image:     "https://example.com/image1.png",
-				Content:   "テスト内容1",
+				Content:   "かわいい",
 				CreatedAt: fixedTime,
 			},
 			{
-				SourceID:  ids[1],
-				Name:      "テストエントリ2",
+				SourceID:  *f.Sources[1].ID,
+				Name:      "四条貴音",
 				Image:     "https://example.com/image2.png",
-				Content:   "テスト内容2",
+				Content:   "お姫ちん",
 				CreatedAt: fixedTime,
 			},
 		}
@@ -104,18 +81,29 @@ func TestCreateEntryHandler(t *testing.T) {
 		// テストの実行
 		h.ServeHTTP(w, req)
 
-		// ロールバック
-		tx.RollbackCtx(ctx)
-
 		// 応答の検証
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual []Entry
-		err = json.NewDecoder(res.Body).Decode(&actual)
+		var actuals []Entry
+		err = json.NewDecoder(res.Body).Decode(&actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entrys, actual)
+		assert.Equal(t, entrys, actuals)
+
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
+		assert.NoError(t, err)
+		assert.Equal(t, entrys[0].SourceID, actuals[0].SourceID)
+		assert.Equal(t, entrys[0].Name, actuals[0].Name)
+		assert.Equal(t, entrys[0].Image, actuals[0].Image)
+		assert.Equal(t, entrys[0].Content, actuals[0].Content)
+		assert.Equal(t, entrys[1].SourceID, actuals[1].SourceID)
+		assert.Equal(t, entrys[1].Name, actuals[1].Name)
+		assert.Equal(t, entrys[1].Image, actuals[1].Image)
+		assert.Equal(t, entrys[1].Content, actuals[1].Content)
+
+		// ロールバック
+		tx.RollbackCtx(ctx)
 	})
 }
 
