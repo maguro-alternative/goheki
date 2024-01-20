@@ -86,6 +86,7 @@ func TestCreateBEHHandler(t *testing.T) {
 			Weight: &takaneWeight,
 		},
 	}
+	ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -101,7 +102,6 @@ func TestCreateBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res []BWH
@@ -109,6 +109,22 @@ func TestCreateBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res)
 	})
+
+	t.Run("bwh登録失敗", func(t *testing.T) {
+		h := NewCreateHandler(indexService)
+		bJson, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestReadBEHHandler(t *testing.T) {
