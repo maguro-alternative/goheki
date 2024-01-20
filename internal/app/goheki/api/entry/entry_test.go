@@ -362,9 +362,6 @@ func TestUpdateEntryHandler(t *testing.T) {
 		// テストの実行
 		h.ServeHTTP(w, req)
 
-		// ロールバック
-		tx.RollbackCtx(ctx)
-
 		// 応答の検証
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -375,6 +372,9 @@ func TestUpdateEntryHandler(t *testing.T) {
 
 		assert.Equal(t, updateEntrys, actual)
 	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteEntryHandler(t *testing.T) {
