@@ -24,6 +24,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var entryTags []EntryTag
+	var bodyBytes []byte
 	query := `
 		INSERT INTO entry_tag (
 			entry_id,
@@ -33,7 +34,11 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:tag_id
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&entryTags)
+	_, err := r.Body.Read(bodyBytes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(bodyBytes, &entryTags)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -41,12 +46,12 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, entryTag := range entryTags {
 		_, err := h.svc.DB.NamedExecContext(r.Context(), query, entryTag)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	err = json.NewEncoder(w).Encode(&entryTags)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -146,6 +151,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var entryTags []EntryTag
+	var bodyBytes []byte
 	query := `
 		UPDATE
 			entry_tag
@@ -155,7 +161,11 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&entryTags)
+	_, err := r.Body.Read(bodyBytes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(bodyBytes, &entryTags)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -186,13 +196,18 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var delIDs IDs
+	var bodyBytes []byte
 	query := `
 		DELETE FROM
 			entry_tag
 		WHERE
 			id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	_, err := r.Body.Read(bodyBytes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(bodyBytes, &delIDs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -207,25 +222,25 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		err = json.NewEncoder(w).Encode(&delIDs)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(delIDs.IDs),query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
