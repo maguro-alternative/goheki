@@ -91,9 +91,6 @@ func TestCreateEntryTagHandler(t *testing.T) {
 		// テストの実行
 		h.ServeHTTP(w, req)
 
-		// ロールバック
-		tx.RollbackCtx(ctx)
-
 		// 応答の検証
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -104,6 +101,37 @@ func TestCreateEntryTagHandler(t *testing.T) {
 
 		assert.Equal(t, entryTags, actual)
 	})
+
+	t.Run("entry_tag登録失敗", func(t *testing.T) {
+		entryTags := []IDs{
+			{
+				IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID},
+			},
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewCreateHandler(indexService)
+		eJson, err := json.Marshal(&entryTags)
+		req, err := http.NewRequest(http.MethodPost, "/api/entry_tag/create", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestReadEntryTagHandler(t *testing.T) {
