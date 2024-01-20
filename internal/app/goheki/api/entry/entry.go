@@ -1,9 +1,6 @@
 package entry
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/pkg/db"
 
@@ -43,15 +40,18 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&entrys)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	for _, entry := range entrys {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
-	json.NewEncoder(w).Encode(&entrys)
+	err = json.NewEncoder(w).Encode(&entrys)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 type ReadHandler struct {
@@ -95,9 +95,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &entrys, query)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		json.NewEncoder(w).Encode(&entrys)
+		err = json.NewEncoder(w).Encode(&entrys)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	} else if len(queryIDs) == 1 {
 		query = `
@@ -114,21 +117,27 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &entrys, query, queryIDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		json.NewEncoder(w).Encode(&entrys)
+		err = json.NewEncoder(w).Encode(&entrys)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), queryIDs)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	query = db.Rebind(len(queryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &entrys, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v\nid:%v", err, query, queryIDs))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	json.NewEncoder(w).Encode(&entrys)
+	err = json.NewEncoder(w).Encode(&entrys)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 type UpdateHandler struct {
@@ -160,19 +169,18 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&entrys)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	//query, args, err := db.In(query, entrys)
-	//if err != nil {
-	//return
-	//}
 	for _, entry := range entrys {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
-	json.NewEncoder(w).Encode(&entrys)
+	err = json.NewEncoder(w).Encode(&entrys)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 type DeleteHandler struct {
@@ -198,7 +206,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	if len(delIDs.IDs) == 0 {
 		return
@@ -211,19 +219,25 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		json.NewEncoder(w).Encode(&delIDs)
+		err = json.NewEncoder(w).Encode(&delIDs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db.ExecContext error: %v \nqurey:%v", err, query))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	json.NewEncoder(w).Encode(&delIDs)
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
