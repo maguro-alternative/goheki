@@ -101,10 +101,38 @@ func TestCreateEntryHandler(t *testing.T) {
 		assert.Equal(t, entrys[1].Name, actuals[1].Name)
 		assert.Equal(t, entrys[1].Image, actuals[1].Image)
 		assert.Equal(t, entrys[1].Content, actuals[1].Content)
-
-		// ロールバック
-		tx.RollbackCtx(ctx)
 	})
+
+	t.Run("entry登録失敗", func(t *testing.T) {
+		entrys := []IDs{
+			{
+				IDs: []int64{1, 2},
+			},
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewCreateHandler(indexService)
+		eJson, err := json.Marshal(&entrys)
+		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+
+	// ロールバック
+	tx.RollbackCtx(ctx)
 }
 
 func TestReadEntryHandler(t *testing.T) {
