@@ -3,6 +3,7 @@ package entry
 import (
 	"fmt"
 	"log"
+	"io"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/pkg/db"
@@ -41,7 +42,12 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:created_at
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&entriesJson)
+	jsonBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &entriesJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -180,9 +186,14 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&entriesJson)
+	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println(fmt.Sprintf("json decode error: %v", err))
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &entriesJson)
+	if err != nil {
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	for _, entry := range entriesJson.Entries {
@@ -220,9 +231,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println(fmt.Sprintf("json decode error: %v", err))
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &delIDs)
+	if err != nil {
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	if len(delIDs.IDs) == 0 {
