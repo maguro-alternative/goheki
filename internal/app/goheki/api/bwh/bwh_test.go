@@ -72,18 +72,18 @@ func TestCreateBEHHandler(t *testing.T) {
 	bwhs := []BWH{
 		{
 			EntryID: f.Entrys[0].ID,
-			Bust:   92,
-			Waist:  56,
-			Hip:    84,
-			Height: &yumiHeight,
+			Bust:    92,
+			Waist:   56,
+			Hip:     84,
+			Height:  &yumiHeight,
 		},
 		{
 			EntryID: f.Entrys[1].ID,
-			Bust:   90,
-			Waist:  60,
-			Hip:    92,
-			Height: &takaneHeight,
-			Weight: &takaneWeight,
+			Bust:    90,
+			Waist:   60,
+			Hip:     92,
+			Height:  &takaneHeight,
+			Weight:  &takaneWeight,
 		},
 	}
 	bwhJsons := BWHJsons{
@@ -196,18 +196,18 @@ func TestReadBEHHandler(t *testing.T) {
 	bwhs := []BWH{
 		{
 			EntryID: f.Entrys[0].ID,
-			Bust:   92,
-			Waist:  56,
-			Hip:    84,
-			Height: &yumiHeight,
+			Bust:    92,
+			Waist:   56,
+			Hip:     84,
+			Height:  &yumiHeight,
 		},
 		{
 			EntryID: f.Entrys[1].ID,
-			Bust:   90,
-			Waist:  60,
-			Hip:    92,
-			Height: &takaneHeight,
-			Weight: &takaneWeight,
+			Bust:    90,
+			Waist:   60,
+			Hip:     92,
+			Height:  &takaneHeight,
+			Weight:  &takaneWeight,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -332,19 +332,19 @@ func TestUpdateBEHHandler(t *testing.T) {
 	updateBWHs := []BWH{
 		{
 			EntryID: f.Entrys[0].ID,
-			Bust:   98,
-			Waist:  59,
-			Hip:    87,
-			Height: &yumiHeight,
-			Weight: nil,
+			Bust:    98,
+			Waist:   59,
+			Hip:     87,
+			Height:  &yumiHeight,
+			Weight:  nil,
 		},
 		{
 			EntryID: f.Entrys[1].ID,
-			Bust:   93,
-			Waist:  62,
-			Hip:    96,
-			Height: &takaneHeight,
-			Weight: &takaneWeight,
+			Bust:    93,
+			Waist:   62,
+			Hip:     96,
+			Height:  &takaneHeight,
+			Weight:  &takaneWeight,
 		},
 	}
 	var indexService = service.NewIndexService(
