@@ -89,7 +89,7 @@ func TestCreateBEHHandler(t *testing.T) {
 	bwhsJson := BWHsJson{
 		BWHs: bwhs,
 	}
-	ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
+	ids := IDs{IDs:[]int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,

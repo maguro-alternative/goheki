@@ -54,6 +54,10 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("json unmarshal error: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	if len(bwhsJson.BWHs) == 0 {
+		log.Println("json unexpected error: empty body")
+		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
+	}
 	for _, bwh := range bwhsJson.BWHs {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, bwh)
 		if err != nil {
