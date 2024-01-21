@@ -1,6 +1,9 @@
 package entry_tag
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/pkg/db"
 
@@ -23,8 +26,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var entryTags []EntryTag
-	var bodyBytes []byte
+	var entryTagsJson EntryTagsJson
 	query := `
 		INSERT INTO entry_tag (
 			entry_id,
@@ -34,23 +36,22 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:tag_id
 		)
 	`
-	_, err := r.Body.Read(bodyBytes)
+	err := json.NewDecoder(r.Body).Decode(&entryTagsJson)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	err = json.Unmarshal(bodyBytes, &entryTags)
-	if err != nil {
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	for _, entryTag := range entryTags {
+	for _, entryTag := range entryTagsJson.EntryTags {
 		_, err := h.svc.DB.NamedExecContext(r.Context(), query, entryTag)
 		if err != nil {
+			log.Println(fmt.Sprintf("insert error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&entryTags)
+	err = json.NewEncoder(w).Encode(&entryTagsJson)
 	if err != nil {
+		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -69,7 +70,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var entryTags []EntryTag
+	var entryTagsJson EntryTagsJson
 	query := `
 		SELECT
 			id,
@@ -90,12 +91,14 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				entry_tag
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &entryTags, query)
+		err := h.svc.DB.SelectContext(r.Context(), &entryTagsJson, query)
 		if err != nil {
+			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&entryTags)
+		err = json.NewEncoder(w).Encode(&entryTagsJson)
 		if err != nil {
+			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
@@ -110,27 +113,32 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &entryTags, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &entryTagsJson, query, queryIDs[0])
 		if err != nil {
+			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&entryTags)
+		err = json.NewEncoder(w).Encode(&entryTagsJson)
 		if err != nil {
+			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
+		log.Println(fmt.Sprintf("db.In error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &entryTags, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &entryTagsJson, query, args...)
 	if err != nil {
+		log.Println(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&entryTags)
+	err = json.NewEncoder(w).Encode(&entryTagsJson)
 	if err != nil {
+		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -150,8 +158,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var entryTags []EntryTag
-	var bodyBytes []byte
+	var entryTagsJson EntryTagsJson
 	query := `
 		UPDATE
 			entry_tag
@@ -161,21 +168,17 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	_, err := r.Body.Read(bodyBytes)
+	err := json.NewDecoder(r.Body).Decode(&entryTagsJson)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	err = json.Unmarshal(bodyBytes, &entryTags)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	for _, entryTag := range entryTags {
+	for _, entryTag := range entryTagsJson.EntryTags {
 		_, err := h.svc.DB.NamedExecContext(r.Context(), query, entryTag)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&entryTags)
+	err = json.NewEncoder(w).Encode(&entryTagsJson)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -196,18 +199,13 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var delIDs IDs
-	var bodyBytes []byte
 	query := `
 		DELETE FROM
 			entry_tag
 		WHERE
 			id IN (?)
 	`
-	_, err := r.Body.Read(bodyBytes)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	err = json.Unmarshal(bodyBytes, &delIDs)
+	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

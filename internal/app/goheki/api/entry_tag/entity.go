@@ -10,6 +10,10 @@ type EntryTag struct {
 	TagID   *int64 `db:"tag_id" json:"tag_id"`
 }
 
+type EntryTagsJson struct {
+	EntryTags []EntryTag `json:"entry_tags"`
+}
+
 type Source struct {
 	ID      *int64 `db:"id" json:"id"`
 	Name    string `db:"name" json:"name"`
