@@ -25,7 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var bwhs BWHJsons
+	var bwhJsons BWHJsons
 	query := `
 		INSERT INTO bwh (
 			entry_id,
@@ -43,19 +43,19 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:weight
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&bwhs)
+	err := json.NewDecoder(r.Body).Decode(&bwhJsons)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, bwh := range bwhs.BWHs {
+	for _, bwh := range bwhJsons.BWHs {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, bwh)
 		if err != nil {
 			log.Println(fmt.Sprintf("insert error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&bwhs)
+	err = json.NewEncoder(w).Encode(&bwhJsons)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -76,7 +76,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var bwhs BWHJsons
+	var bwhJsons BWHJsons
 	query := `
 		SELECT
 			entry_id,
@@ -103,12 +103,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				bwh
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &bwhs.BWHs, query)
+		err := h.svc.DB.SelectContext(r.Context(), &bwhJsons.BWHs, query)
 		if err != nil {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&bwhs)
+		err = json.NewEncoder(w).Encode(&bwhJsons)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -128,12 +128,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &bwhs.BWHs, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &bwhJsons.BWHs, query, queryIDs[0])
 		if err != nil {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&bwhs)
+		err = json.NewEncoder(w).Encode(&bwhJsons)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -146,12 +146,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &bwhs.BWHs, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &bwhJsons.BWHs, query, args...)
 	if err != nil {
 		log.Println(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&bwhs)
+	err = json.NewEncoder(w).Encode(&bwhJsons)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -172,7 +172,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var bwhs BWHJsons
+	var bwhJsons BWHJsons
 	query := `
 		UPDATE
 			bwh
@@ -185,19 +185,19 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id = :entry_id
 	`
-	err := json.NewDecoder(r.Body).Decode(&bwhs)
+	err := json.NewDecoder(r.Body).Decode(&bwhJsons)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, bwh := range bwhs.BWHs {
+	for _, bwh := range bwhJsons.BWHs {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, bwh)
 		if err != nil {
 			log.Println(fmt.Sprintf("update error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&bwhs)
+	err = json.NewEncoder(w).Encode(&bwhJsons)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
