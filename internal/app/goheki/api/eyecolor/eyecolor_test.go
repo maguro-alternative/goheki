@@ -71,17 +71,19 @@ func TestCreateEyeColorHandler(t *testing.T) {
 	)
 	t.Run("eyecolor作成", func(t *testing.T) {
 		// リクエストを作成
-		eyeColors := []EyeColor{
-			{
-				EntryID: *f.Entrys[0].ID,
-				ColorID: *f.EyeColorTypes[0].ID,
-			},
-			{
-				EntryID: *f.Entrys[1].ID,
-				ColorID: *f.EyeColorTypes[1].ID,
+		eyeColorsJson := EyeColorsJson{
+			[]EyeColor{
+				{
+					EntryID: *f.Entrys[0].ID,
+					ColorID: *f.EyeColorTypes[0].ID,
+				},
+				{
+					EntryID: *f.Entrys[1].ID,
+					ColorID: *f.EyeColorTypes[1].ID,
+				},
 			},
 		}
-		b, err := json.Marshal(eyeColors)
+		b, err := json.Marshal(eyeColorsJson)
 		assert.NoError(t, err)
 		req, err := http.NewRequest(http.MethodPost, "/api/eyecolor/create", bytes.NewBuffer(b))
 		assert.NoError(t, err)
@@ -91,10 +93,29 @@ func TestCreateEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, rr.Code)
-		var res []EyeColor
+		var res EyeColorsJson
 		err = json.NewDecoder(rr.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, eyeColors, res)
+		assert.Equal(t, eyeColorsJson, res)
+
+		var actual []EyeColor
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM eye_colors")
+		assert.NoError(t, err)
+	})
+
+	t.Run("eyecolor作成失敗", func(t *testing.T) {
+		// リクエストを作成
+		ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
+		b, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/api/eyecolor/create", bytes.NewBuffer(b))
+		assert.NoError(t, err)
+		// レスポンスを作成
+		rr := httptest.NewRecorder()
+		handler := NewCreateHandler(indexService)
+		handler.ServeHTTP(rr, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
@@ -162,13 +183,13 @@ func TestReadEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, rr.Code)
-		var res []EyeColor
+		var res EyeColorsJson
 		err = json.NewDecoder(rr.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.EyeColors[0].EntryID, res[0].EntryID)
-		assert.Equal(t, f.EyeColors[1].EntryID, res[1].EntryID)
-		assert.Equal(t, f.EyeColors[0].ColorID, res[0].ColorID)
-		assert.Equal(t, f.EyeColors[1].ColorID, res[1].ColorID)
+		assert.Equal(t, f.EyeColors[0].EntryID, res.EyeColors[0].EntryID)
+		assert.Equal(t, f.EyeColors[1].EntryID, res.EyeColors[1].EntryID)
+		assert.Equal(t, f.EyeColors[0].ColorID, res.EyeColors[0].ColorID)
+		assert.Equal(t, f.EyeColors[1].ColorID, res.EyeColors[1].ColorID)
 	})
 
 	t.Run("eyecolor1件取得", func(t *testing.T) {
@@ -181,11 +202,11 @@ func TestReadEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, rr.Code)
-		var res []EyeColor
+		var res EyeColorsJson
 		err = json.NewDecoder(rr.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.EyeColors[0].EntryID, res[0].EntryID)
-		assert.Equal(t, f.EyeColors[0].ColorID, res[0].ColorID)
+		assert.Equal(t, f.EyeColors[0].EntryID, res.EyeColors[0].EntryID)
+		assert.Equal(t, f.EyeColors[0].ColorID, res.EyeColors[0].ColorID)
 	})
 
 	t.Run("eyecolor2件取得", func(t *testing.T) {
@@ -198,13 +219,13 @@ func TestReadEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, rr.Code)
-		var res []EyeColor
+		var res EyeColorsJson
 		err = json.NewDecoder(rr.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.EyeColors[0].EntryID, res[0].EntryID)
-		assert.Equal(t, f.EyeColors[1].EntryID, res[1].EntryID)
-		assert.Equal(t, f.EyeColors[0].ColorID, res[0].ColorID)
-		assert.Equal(t, f.EyeColors[1].ColorID, res[1].ColorID)
+		assert.Equal(t, f.EyeColors[0].EntryID, res.EyeColors[0].EntryID)
+		assert.Equal(t, f.EyeColors[1].EntryID, res.EyeColors[1].EntryID)
+		assert.Equal(t, f.EyeColors[0].ColorID, res.EyeColors[0].ColorID)
+		assert.Equal(t, f.EyeColors[1].ColorID, res.EyeColors[1].ColorID)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
@@ -263,17 +284,19 @@ func TestUpdateEyeColorHandler(t *testing.T) {
 		env,
 	)
 	t.Run("eyecolor更新", func(t *testing.T) {
-		updateEyeColors := []EyeColor{
-			{
-				EntryID: *f.Entrys[0].ID,
-				ColorID: *f.EyeColorTypes[1].ID,
-			},
-			{
-				EntryID: *f.Entrys[1].ID,
-				ColorID: *f.EyeColorTypes[0].ID,
+		updateEyeColorsJson := EyeColorsJson{
+			[]EyeColor{
+				{
+					EntryID: *f.Entrys[0].ID,
+					ColorID: *f.EyeColorTypes[1].ID,
+				},
+				{
+					EntryID: *f.Entrys[1].ID,
+					ColorID: *f.EyeColorTypes[0].ID,
+				},
 			},
 		}
-		b, err := json.Marshal(updateEyeColors)
+		b, err := json.Marshal(updateEyeColorsJson)
 		assert.NoError(t, err)
 		// リクエストを作成
 		req, err := http.NewRequest(http.MethodPut, "/api/eyecolor/update", bytes.NewBuffer(b))
@@ -284,10 +307,18 @@ func TestUpdateEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, rr.Code)
-		var res []EyeColor
+		var res EyeColorsJson
 		err = json.NewDecoder(rr.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, updateEyeColors, res)
+		assert.Equal(t, updateEyeColorsJson, res)
+
+		var actual []EyeColor
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM eyecolor")
+		assert.NoError(t, err)
+		assert.Equal(t, updateEyeColorsJson.EyeColors[0].EntryID, actual[0].EntryID)
+		assert.Equal(t, updateEyeColorsJson.EyeColors[1].EntryID, actual[1].EntryID)
+		assert.Equal(t, updateEyeColorsJson.EyeColors[0].ColorID, actual[0].ColorID)
+		assert.Equal(t, updateEyeColorsJson.EyeColors[1].ColorID, actual[1].ColorID)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
@@ -362,6 +393,11 @@ func TestDeleteEyeColorHandler(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&actual)
 		assert.NoError(t, err)
 		assert.Equal(t, delIDs, actual)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM eyecolor")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, count)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)

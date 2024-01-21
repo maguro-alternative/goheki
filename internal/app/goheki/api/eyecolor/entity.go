@@ -5,6 +5,10 @@ type EyeColor struct {
 	ColorID int64 `db:"color_id"`
 }
 
+type EyeColorsJson struct {
+	EyeColors []EyeColor `json:"eyecolors"`
+}
+
 type IDs struct {
 	IDs []int64 `json:"ids"`
 }
