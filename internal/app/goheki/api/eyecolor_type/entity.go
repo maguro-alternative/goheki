@@ -5,6 +5,10 @@ type EyeColorType struct {
 	Color string `db:"color"`
 }
 
+type EyeColorTypesJson struct {
+	EyeColorTypes []EyeColorType `json:"eyecolor_types"`
+}
+
 type IDs struct {
 	IDs []int64 `json:"ids"`
 }

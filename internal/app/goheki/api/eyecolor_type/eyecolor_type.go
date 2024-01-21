@@ -25,7 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var eyeColorTypes []EyeColorType
+	var eyeColorTypesJson EyeColorTypesJson
 	query := `
 		INSERT INTO eyecolor_type (
 			color
@@ -33,21 +33,24 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:color
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorTypes)
+	err := json.NewDecoder(r.Body).Decode(&eyeColorTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, eyeColorType := range eyeColorTypes {
+	for _, eyeColorType := range eyeColorTypesJson.EyeColorTypes {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColorType)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&eyeColorTypes)
+	err = json.NewEncoder(w).Encode(&eyeColorTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -66,7 +69,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var eyeColorTypes []EyeColorType
+	var eyeColorTypesJson EyeColorTypesJson
 	query := `
 		SELECT
 			id,
@@ -85,14 +88,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				eyecolor_type
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &eyeColorTypes, query)
+		err := h.svc.DB.SelectContext(r.Context(), &eyeColorTypesJson.EyeColorTypes, query)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&eyeColorTypes)
+		err = json.NewEncoder(w).Encode(&eyeColorTypesJson)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
@@ -106,32 +111,37 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &eyeColorTypes, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &eyeColorTypesJson.EyeColorTypes, query, queryIDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&eyeColorTypes)
+		err = json.NewEncoder(w).Encode(&eyeColorTypesJson)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &eyeColorTypes, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &eyeColorTypesJson.EyeColorTypes, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(&eyeColorTypes)
+	err = json.NewEncoder(w).Encode(&eyeColorTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -150,7 +160,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var eyeColorTypes []EyeColorType
+	var eyeColorTypesJson EyeColorTypesJson
 	query := `
 		UPDATE
 			eyecolor_type
@@ -159,21 +169,24 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorTypes)
+	err := json.NewDecoder(r.Body).Decode(&eyeColorTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, eyeColorType := range eyeColorTypes {
+	for _, eyeColorType := range eyeColorTypesJson.EyeColorTypes {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColorType)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&eyeColorTypes)
+	err = json.NewEncoder(w).Encode(&eyeColorTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -201,7 +214,8 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if len(delIDs.IDs) == 0 {
@@ -215,25 +229,29 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
