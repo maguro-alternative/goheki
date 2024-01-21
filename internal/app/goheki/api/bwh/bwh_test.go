@@ -226,10 +226,10 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []BWH
+		var res BWHJsons
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, bwhs, res)
+		assert.Equal(t, bwhs, res.BWHs)
 	})
 
 	t.Run("bwh1件取得", func(t *testing.T) {
@@ -243,10 +243,10 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []BWH
+		var res BWHJsons
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, bwhs[:1], res)
+		assert.Equal(t, bwhs[:1], res.BWHs)
 	})
 
 	t.Run("bwh2件取得", func(t *testing.T) {
@@ -260,10 +260,10 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []BWH
+		var res BWHJsons
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, bwhs, res)
+		assert.Equal(t, bwhs, res.BWHs)
 	})
 
 	// ロールバック
@@ -329,22 +329,24 @@ func TestUpdateBEHHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	updateBWHs := []BWH{
-		{
-			EntryID: f.Entrys[0].ID,
-			Bust:    98,
-			Waist:   59,
-			Hip:     87,
-			Height:  &yumiHeight,
-			Weight:  nil,
-		},
-		{
-			EntryID: f.Entrys[1].ID,
-			Bust:    93,
-			Waist:   62,
-			Hip:     96,
-			Height:  &takaneHeight,
-			Weight:  &takaneWeight,
+	updateBWHJsons := BWHJsons{
+		[]BWH{
+			{
+				EntryID: f.Entrys[0].ID,
+				Bust:    98,
+				Waist:   59,
+				Hip:     87,
+				Height:  &yumiHeight,
+				Weight:  nil,
+			},
+			{
+				EntryID: f.Entrys[1].ID,
+				Bust:    93,
+				Waist:   62,
+				Hip:     96,
+				Height:  &takaneHeight,
+				Weight:  &takaneWeight,
+			},
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -354,7 +356,7 @@ func TestUpdateBEHHandler(t *testing.T) {
 	)
 	t.Run("bwh更新", func(t *testing.T) {
 		h := NewUpdateHandler(indexService)
-		bJson, err := json.Marshal(updateBWHs)
+		bJson, err := json.Marshal(updateBWHJsons)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut, "/api/bwh/update", bytes.NewBuffer(bJson))
 		assert.NoError(t, err)
@@ -365,10 +367,10 @@ func TestUpdateBEHHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []BWH
+		var res BWHJsons
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, updateBWHs, res)
+		assert.Equal(t, updateBWHJsons, res)
 	})
 }
 
