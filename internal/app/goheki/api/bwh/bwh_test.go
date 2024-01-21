@@ -89,7 +89,7 @@ func TestCreateBEHHandler(t *testing.T) {
 	bwhsJson := BWHsJson{
 		BWHs: bwhs,
 	}
-	ids := IDs{IDs:[]int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
+	ids := IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -128,6 +128,33 @@ func TestCreateBEHHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bwh登録失敗 形式が正しくないjson", func(t *testing.T) {
+		type dummey struct {
+			EntryID int64 `json:"entry_id"`
+			ID      int64 `json:"id"`
+		}
+		type dummeyJson struct {
+			BWHs []dummey `json:"bwhs"`
+		}
+		h := NewCreateHandler(indexService)
+		bJson, err := json.Marshal(dummeyJson{
+			BWHs: []dummey{
+				{
+					EntryID: 0,
+					ID:      0,
+				},
+			},
+		})
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
 	// ロールバック
