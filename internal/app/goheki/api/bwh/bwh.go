@@ -108,7 +108,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&bwhs.BWHs)
+		err = json.NewEncoder(w).Encode(&bwhs)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -133,7 +133,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&bwhs.BWHs)
+		err = json.NewEncoder(w).Encode(&bwhs)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -151,7 +151,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&bwhs.BWHs)
+	err = json.NewEncoder(w).Encode(&bwhs)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -185,7 +185,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id = :entry_id
 	`
-	err := json.NewDecoder(r.Body).Decode(&bwhs.BWHs)
+	err := json.NewDecoder(r.Body).Decode(&bwhs)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -197,7 +197,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&bwhs.BWHs)
+	err = json.NewEncoder(w).Encode(&bwhs)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
