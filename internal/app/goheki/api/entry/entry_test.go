@@ -48,7 +48,7 @@ func TestCreateEntryHandler(t *testing.T) {
 		}),
 	)
 	t.Run("entry登録", func(t *testing.T) {
-		entrys := EntrieJsons{
+		entryJsons := EntrieJsons{
 			[]Entry{
 				{
 					SourceID:  *f.Sources[0].ID,
@@ -74,7 +74,7 @@ func TestCreateEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewCreateHandler(indexService)
-		eJson, err := json.Marshal(&entrys)
+		eJson, err := json.Marshal(&entryJsons)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -92,18 +92,18 @@ func TestCreateEntryHandler(t *testing.T) {
 		err = json.NewDecoder(r.Body).Decode(&res)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entrys, res)
+		assert.Equal(t, entryJsons, res)
 
 		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
 		assert.NoError(t, err)
-		assert.Equal(t, entrys.Entries[0].SourceID, actuals[0].SourceID)
-		assert.Equal(t, entrys.Entries[0].Name, actuals[0].Name)
-		assert.Equal(t, entrys.Entries[0].Image, actuals[0].Image)
-		assert.Equal(t, entrys.Entries[0].Content, actuals[0].Content)
-		assert.Equal(t, entrys.Entries[1].SourceID, actuals[1].SourceID)
-		assert.Equal(t, entrys.Entries[1].Name, actuals[1].Name)
-		assert.Equal(t, entrys.Entries[1].Image, actuals[1].Image)
-		assert.Equal(t, entrys.Entries[1].Content, actuals[1].Content)
+		assert.Equal(t, entryJsons.Entries[0].SourceID, actuals[0].SourceID)
+		assert.Equal(t, entryJsons.Entries[0].Name, actuals[0].Name)
+		assert.Equal(t, entryJsons.Entries[0].Image, actuals[0].Image)
+		assert.Equal(t, entryJsons.Entries[0].Content, actuals[0].Content)
+		assert.Equal(t, entryJsons.Entries[1].SourceID, actuals[1].SourceID)
+		assert.Equal(t, entryJsons.Entries[1].Name, actuals[1].Name)
+		assert.Equal(t, entryJsons.Entries[1].Image, actuals[1].Image)
+		assert.Equal(t, entryJsons.Entries[1].Content, actuals[1].Content)
 	})
 
 	t.Run("entry登録失敗", func(t *testing.T) {
