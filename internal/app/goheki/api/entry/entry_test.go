@@ -428,24 +428,24 @@ func TestDeleteEntryHandler(t *testing.T) {
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース1"
+			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
-		}).Connect(fixtures.NewEntry(ctx, func(e *fixtures.Entry) {
-			e.Name = "テストエントリ1"
-			e.Image = "https://example.com/image1.png"
-			e.Content = "テスト内容1"
-			e.CreatedAt = fixedTime
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "雪泉"
+			s.Image = "https://example.com/image1.png"
+			s.Content = "かわいい"
+			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース2"
+			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
-		}).Connect(fixtures.NewEntry(ctx, func(e *fixtures.Entry) {
-			e.Name = "テストエントリ2"
-			e.Image = "https://example.com/image2.png"
-			e.Content = "テスト内容2"
-			e.CreatedAt = fixedTime
+		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
+			s.Name = "四条貴音"
+			s.Image = "https://example.com/image2.png"
+			s.Content = "お姫ちん"
+			s.CreatedAt = fixedTime
 		})),
 	)
 	t.Run("entry削除", func(t *testing.T) {
