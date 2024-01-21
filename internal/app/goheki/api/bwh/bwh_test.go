@@ -364,14 +364,19 @@ func TestUpdateBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res BWHJsons
+		var actual []BWH
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateBWHJsons, res)
+
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, updateBWHJsons.BWHs, actual)
 	})
+	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteBEHHandler(t *testing.T) {
@@ -448,12 +453,18 @@ func TestDeleteBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res IDs
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, delIDs, res)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, 1, count)
 	})
+
+	tx.RollbackCtx(ctx)
 }
