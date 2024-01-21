@@ -37,23 +37,23 @@ func TestCreateEntryTagHandler(t *testing.T) {
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース1"
+			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ1"
+			s.Name = "雪泉"
 			s.Image = "https://example.com/image1.png"
-			s.Content = "テスト内容1"
+			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース2"
+			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ2"
+			s.Name = "四条貴音"
 			s.Image = "https://example.com/image2.png"
-			s.Content = "テスト内容2"
+			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
@@ -150,23 +150,23 @@ func TestReadEntryTagHandler(t *testing.T) {
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース1"
+			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ1"
+			s.Name = "雪泉"
 			s.Image = "https://example.com/image1.png"
-			s.Content = "テスト内容1"
+			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース2"
+			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ2"
+			s.Name = "四条貴音"
 			s.Image = "https://example.com/image2.png"
-			s.Content = "テスト内容2"
+			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
@@ -315,23 +315,23 @@ func TestUpdateEntryHandler(t *testing.T) {
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース1"
+			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ1"
+			s.Name = "雪泉"
 			s.Image = "https://example.com/image1.png"
-			s.Content = "テスト内容1"
+			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース2"
+			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ2"
+			s.Name = "四条貴音"
 			s.Image = "https://example.com/image2.png"
-			s.Content = "テスト内容2"
+			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
@@ -414,23 +414,23 @@ func TestDeleteEntryTagHandler(t *testing.T) {
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース1"
+			s.Name = "閃乱カグラ"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ1"
+			s.Name = "雪泉"
 			s.Image = "https://example.com/image1.png"
-			s.Content = "テスト内容1"
+			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
-			s.Name = "テストソース2"
+			s.Name = "アイドルマスター"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
 		}).Connect(fixtures.NewEntry(ctx, func(s *fixtures.Entry) {
-			s.Name = "テストエントリ2"
+			s.Name = "四条貴音"
 			s.Image = "https://example.com/image2.png"
-			s.Content = "テスト内容2"
+			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		})),
 		fixtures.NewTag(ctx, func(s *fixtures.Tag) {
