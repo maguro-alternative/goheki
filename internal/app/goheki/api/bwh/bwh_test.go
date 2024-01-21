@@ -86,7 +86,7 @@ func TestCreateBEHHandler(t *testing.T) {
 			Weight:  &takaneWeight,
 		},
 	}
-	bwhJsons := BWHJsons{
+	bwhsJson := BWHsJson{
 		BWHs: bwhs,
 	}
 	ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
@@ -97,7 +97,7 @@ func TestCreateBEHHandler(t *testing.T) {
 	)
 	t.Run("bwh登録", func(t *testing.T) {
 		h := NewCreateHandler(indexService)
-		bJson, err := json.Marshal(&bwhJsons)
+		bJson, err := json.Marshal(&bwhsJson)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
 		assert.NoError(t, err)
@@ -107,14 +107,14 @@ func TestCreateBEHHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res BWHJsons
+		var res BWHsJson
 		var dbResult []BWH
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res.BWHs)
 		err = tx.SelectContext(ctx, &dbResult, "SELECT * FROM bwh")
 		assert.NoError(t, err)
-		assert.Equal(t, bwhJsons.BWHs, dbResult)
+		assert.Equal(t, bwhsJson.BWHs, dbResult)
 	})
 
 	t.Run("bwh登録失敗", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res BWHJsons
+		var res BWHsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res.BWHs)
@@ -243,7 +243,7 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res BWHJsons
+		var res BWHsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs[:1], res.BWHs)
@@ -260,7 +260,7 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res BWHJsons
+		var res BWHsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res.BWHs)
@@ -329,7 +329,7 @@ func TestUpdateBEHHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	updateBWHJsons := BWHJsons{
+	updateBWHsJson := BWHsJson{
 		[]BWH{
 			{
 				EntryID: f.Entrys[0].ID,
@@ -356,7 +356,7 @@ func TestUpdateBEHHandler(t *testing.T) {
 	)
 	t.Run("bwh更新", func(t *testing.T) {
 		h := NewUpdateHandler(indexService)
-		bJson, err := json.Marshal(updateBWHJsons)
+		bJson, err := json.Marshal(updateBWHsJson)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut, "/api/bwh/update", bytes.NewBuffer(bJson))
 		assert.NoError(t, err)
@@ -366,15 +366,15 @@ func TestUpdateBEHHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res BWHJsons
+		var res BWHsJson
 		var actual []BWH
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, updateBWHJsons, res)
+		assert.Equal(t, updateBWHsJson, res)
 
 		err = tx.SelectContext(ctx, &actual, "SELECT * FROM bwh")
 		assert.NoError(t, err)
-		assert.Equal(t, updateBWHJsons.BWHs, actual)
+		assert.Equal(t, updateBWHsJson.BWHs, actual)
 	})
 	tx.RollbackCtx(ctx)
 }

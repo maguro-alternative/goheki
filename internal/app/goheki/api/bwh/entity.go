@@ -9,7 +9,7 @@ type BWH struct {
 	Weight  *int64 `db:"weight" json:"weight"`
 }
 
-type BWHJsons struct {
+type BWHsJson struct {
 	BWHs []BWH `json:"bwhs"`
 }
 
