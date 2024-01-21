@@ -103,10 +103,8 @@ func TestCreateEntryTagHandler(t *testing.T) {
 	})
 
 	t.Run("entry_tag登録失敗", func(t *testing.T) {
-		entryTags := []IDs{
-			{
-				IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID},
-			},
+		entryTags := IDs{
+			IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID},
 		}
 
 		var indexService = service.NewIndexService(
