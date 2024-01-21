@@ -86,6 +86,9 @@ func TestCreateBEHHandler(t *testing.T) {
 			Weight: &takaneWeight,
 		},
 	}
+	bwhJsons := BWHJsons{
+		BWHs: bwhs,
+	}
 	ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
 	var indexService = service.NewIndexService(
 		tx,
@@ -94,7 +97,7 @@ func TestCreateBEHHandler(t *testing.T) {
 	)
 	t.Run("bwh登録", func(t *testing.T) {
 		h := NewCreateHandler(indexService)
-		bJson, err := json.Marshal(bwhs)
+		bJson, err := json.Marshal(&bwhJsons)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
 		assert.NoError(t, err)
@@ -104,10 +107,14 @@ func TestCreateBEHHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []BWH
+		var res BWHJsons
+		var dbResult []BWH
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, bwhs, res)
+		assert.Equal(t, bwhs, res.BWHs)
+		err = tx.SelectContext(ctx, &dbResult, "SELECT * FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, bwhJsons.BWHs, dbResult)
 	})
 
 	t.Run("bwh登録失敗", func(t *testing.T) {

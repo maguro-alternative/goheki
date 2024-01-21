@@ -1,12 +1,16 @@
 package bwh
 
 type BWH struct {
-	EntryID *int64 `db:"entry_id"`
-	Bust    int64  `db:"bust"`
-	Waist   int64  `db:"waist"`
-	Hip     int64  `db:"hip"`
-	Height  *int64 `db:"height"`
-	Weight  *int64 `db:"weight"`
+	EntryID *int64 `db:"entry_id" json:"entry_id"`
+	Bust    int64  `db:"bust" json:"bust"`
+	Waist   int64  `db:"waist" json:"waist"`
+	Hip     int64  `db:"hip" json:"hip"`
+	Height  *int64 `db:"height" json:"height"`
+	Weight  *int64 `db:"weight" json:"weight"`
+}
+
+type BWHJsons struct {
+	BWHs []BWH `json:"bwhs"`
 }
 
 type IDs struct {

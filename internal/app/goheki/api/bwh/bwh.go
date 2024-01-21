@@ -25,8 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var bwhs []BWH
-	var bodyBytes []byte
+	var bwhs BWHJsons
 	query := `
 		INSERT INTO bwh (
 			entry_id,
@@ -44,27 +43,22 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:weight
 		)
 	`
-	_, err := r.Body.Read(bodyBytes)
+	err := json.NewDecoder(r.Body).Decode(&bwhs)
 	if err != nil {
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Fatal(fmt.Sprintf("read error: %v", err))
 	}
-	err = json.Unmarshal(bodyBytes, &bwhs)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
-	}
-	for _, bwh := range bwhs {
+	for _, bwh := range bwhs.BWHs {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, bwh)
 		if err != nil {
+			log.Println(fmt.Sprintf("insert error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			log.Fatal(fmt.Sprintf("insert error: %v", err))
 		}
 	}
 	err = json.NewEncoder(w).Encode(&bwhs)
 	if err != nil {
+		log.Println(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
 	}
 }
 
