@@ -3,6 +3,7 @@ package eyecolor
 import (
 	"fmt"
 	"log"
+	"io"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/pkg/db"
@@ -35,7 +36,12 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:color_id
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorsJson)
+	jsonBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &eyeColorsJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -164,9 +170,14 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id = :entry_id
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorsJson)
+	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf(fmt.Sprintf("json decode error: %v", err))
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &eyeColorsJson)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -207,9 +218,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf(fmt.Sprintf("json decode error: %v", err))
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &delIDs)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

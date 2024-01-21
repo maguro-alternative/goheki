@@ -99,7 +99,7 @@ func TestCreateEyeColorHandler(t *testing.T) {
 		assert.Equal(t, eyeColorsJson, res)
 
 		var actual []EyeColor
-		err = tx.SelectContext(ctx, &actual, "SELECT * FROM eye_colors")
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM eyecolor")
 		assert.NoError(t, err)
 	})
 
