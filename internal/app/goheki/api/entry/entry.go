@@ -196,6 +196,10 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	if len(entriesJson.Entries) == 0 {
+		log.Println("json unexpected error: empty body")
+		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
+	}
 	for _, entry := range entriesJson.Entries {
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
