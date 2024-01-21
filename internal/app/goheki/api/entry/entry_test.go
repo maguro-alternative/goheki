@@ -48,7 +48,7 @@ func TestCreateEntryHandler(t *testing.T) {
 		}),
 	)
 	t.Run("entry登録", func(t *testing.T) {
-		entryJsons := EntrieJsons{
+		entriesJson := EntriesJson{
 			[]Entry{
 				{
 					SourceID:  *f.Sources[0].ID,
@@ -74,7 +74,7 @@ func TestCreateEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewCreateHandler(indexService)
-		eJson, err := json.Marshal(&entryJsons)
+		eJson, err := json.Marshal(&entriesJson)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -87,23 +87,23 @@ func TestCreateEntryHandler(t *testing.T) {
 		r := w.Result()
 		assert.Equal(t, http.StatusOK, r.StatusCode)
 
-		var res EntrieJsons
+		var res EntriesJson
 		var actuals []Entry
 		err = json.NewDecoder(r.Body).Decode(&res)
 		assert.NoError(t, err)
 
-		assert.Equal(t, entryJsons, res)
+		assert.Equal(t, entriesJson, res)
 
 		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
 		assert.NoError(t, err)
-		assert.Equal(t, entryJsons.Entries[0].SourceID, actuals[0].SourceID)
-		assert.Equal(t, entryJsons.Entries[0].Name, actuals[0].Name)
-		assert.Equal(t, entryJsons.Entries[0].Image, actuals[0].Image)
-		assert.Equal(t, entryJsons.Entries[0].Content, actuals[0].Content)
-		assert.Equal(t, entryJsons.Entries[1].SourceID, actuals[1].SourceID)
-		assert.Equal(t, entryJsons.Entries[1].Name, actuals[1].Name)
-		assert.Equal(t, entryJsons.Entries[1].Image, actuals[1].Image)
-		assert.Equal(t, entryJsons.Entries[1].Content, actuals[1].Content)
+		assert.Equal(t, entriesJson.Entries[0].SourceID, actuals[0].SourceID)
+		assert.Equal(t, entriesJson.Entries[0].Name, actuals[0].Name)
+		assert.Equal(t, entriesJson.Entries[0].Image, actuals[0].Image)
+		assert.Equal(t, entriesJson.Entries[0].Content, actuals[0].Content)
+		assert.Equal(t, entriesJson.Entries[1].SourceID, actuals[1].SourceID)
+		assert.Equal(t, entriesJson.Entries[1].Name, actuals[1].Name)
+		assert.Equal(t, entriesJson.Entries[1].Image, actuals[1].Image)
+		assert.Equal(t, entriesJson.Entries[1].Content, actuals[1].Content)
 	})
 
 	t.Run("entry登録失敗", func(t *testing.T) {
@@ -216,7 +216,7 @@ func TestReadEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual EntrieJsons
+		var actual EntriesJson
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
@@ -255,7 +255,7 @@ func TestReadEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual EntrieJsons
+		var actual EntriesJson
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
@@ -290,7 +290,7 @@ func TestReadEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual EntrieJsons
+		var actual EntriesJson
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
 
@@ -346,7 +346,7 @@ func TestUpdateEntryHandler(t *testing.T) {
 		})),
 	)
 
-	updateEntryJsons := EntrieJsons{
+	updateEntriesJson := EntriesJson{
 		[]Entry{
 			{
 				ID:        f.Entrys[0].ID,
@@ -374,7 +374,7 @@ func TestUpdateEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewUpdateHandler(indexService)
-		eJson, err := json.Marshal(&updateEntryJsons)
+		eJson, err := json.Marshal(&updateEntriesJson)
 		req, err := http.NewRequest(http.MethodPut, "/api/entry/update", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -389,22 +389,22 @@ func TestUpdateEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		var actual EntrieJsons
+		var actual EntriesJson
 		var actuals []Entry
 		err = json.NewDecoder(res.Body).Decode(&actual)
 		assert.NoError(t, err)
-		assert.Equal(t, updateEntryJsons, actual)
+		assert.Equal(t, updateEntriesJson, actual)
 
 		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
 		assert.NoError(t, err)
-		assert.Equal(t, updateEntryJsons.Entries[0].SourceID, actuals[0].SourceID)
-		assert.Equal(t, updateEntryJsons.Entries[0].Name, actuals[0].Name)
-		assert.Equal(t, updateEntryJsons.Entries[0].Image, actuals[0].Image)
-		assert.Equal(t, updateEntryJsons.Entries[0].Content, actuals[0].Content)
-		assert.Equal(t, updateEntryJsons.Entries[1].SourceID, actuals[1].SourceID)
-		assert.Equal(t, updateEntryJsons.Entries[1].Name, actuals[1].Name)
-		assert.Equal(t, updateEntryJsons.Entries[1].Image, actuals[1].Image)
-		assert.Equal(t, updateEntryJsons.Entries[1].Content, actuals[1].Content)
+		assert.Equal(t, updateEntriesJson.Entries[0].SourceID, actuals[0].SourceID)
+		assert.Equal(t, updateEntriesJson.Entries[0].Name, actuals[0].Name)
+		assert.Equal(t, updateEntriesJson.Entries[0].Image, actuals[0].Image)
+		assert.Equal(t, updateEntriesJson.Entries[0].Content, actuals[0].Content)
+		assert.Equal(t, updateEntriesJson.Entries[1].SourceID, actuals[1].SourceID)
+		assert.Equal(t, updateEntriesJson.Entries[1].Name, actuals[1].Name)
+		assert.Equal(t, updateEntriesJson.Entries[1].Image, actuals[1].Image)
+		assert.Equal(t, updateEntriesJson.Entries[1].Content, actuals[1].Content)
 	})
 
 	// ロールバック

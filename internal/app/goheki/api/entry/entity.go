@@ -13,7 +13,7 @@ type Entry struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
-type EntrieJsons struct {
+type EntriesJson struct {
 	Entries []Entry `json:"entries"`
 }
 
