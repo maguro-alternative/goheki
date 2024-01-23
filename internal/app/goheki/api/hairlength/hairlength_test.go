@@ -66,7 +66,7 @@ func TestCreateHairLengthHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	heirLengths := []HairLength{
+	heirLengths := HairLengthsJson{[]HairLength{
 		{
 			EntryID:          f.Entrys[0].ID,
 			HairLengthTypeID: f.HairLengthTypes[0].ID,
@@ -75,7 +75,7 @@ func TestCreateHairLengthHandler(t *testing.T) {
 			EntryID:          f.Entrys[1].ID,
 			HairLengthTypeID: f.HairLengthTypes[1].ID,
 		},
-	}
+	}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -93,7 +93,7 @@ func TestCreateHairLengthHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairLength
+		var res HairLengthsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, heirLengths, res)
@@ -265,7 +265,7 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	updateHeirLengths := []HairLength{
+	updateHeirLengths := HairLengthsJson{[]HairLength{
 		{
 			EntryID:          f.Entrys[0].ID,
 			HairLengthTypeID: f.HairLengthTypes[1].ID,
@@ -274,7 +274,7 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 			EntryID:          f.Entrys[1].ID,
 			HairLengthTypeID: f.HairLengthTypes[0].ID,
 		},
-	}
+	}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -292,7 +292,7 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairLength
+		var res HairLengthsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateHeirLengths, res)

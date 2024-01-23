@@ -40,14 +40,14 @@ func TestCreateHairColorTypeHandler(t *testing.T) {
 	)
 	t.Run("haircolor_type登録", func(t *testing.T) {
 		// リクエストの作成
-		hairColorType := []HairColorType{
+		hairColorType := HairColorTypesJson{[]HairColorType{
 			{
 				Color: "black",
 			},
 			{
 				Color: "blue",
 			},
-		}
+		}}
 		b, err := json.Marshal(hairColorType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/haircolor_type/create", bytes.NewBuffer(b))
@@ -184,7 +184,7 @@ func TestUpdateHairColorTypeHandler(t *testing.T) {
 	)
 	t.Run("haircolor_type更新", func(t *testing.T) {
 		// リクエストの作成
-		hairColorType := []HairColorType{
+		hairColorType := HairColorTypesJson{[]HairColorType{
 			{
 				ID:    f.HairColorTypes[0].ID,
 				Color: "red",
@@ -193,7 +193,7 @@ func TestUpdateHairColorTypeHandler(t *testing.T) {
 				ID:    f.HairColorTypes[1].ID,
 				Color: "green",
 			},
-		}
+		}}
 		b, err := json.Marshal(hairColorType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut, "/api/haircolor_type/update", bytes.NewBuffer(b))
@@ -205,13 +205,13 @@ func TestUpdateHairColorTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairColorType
+		var res HairColorTypesJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "red", res[0].Color)
-		assert.Equal(t, "green", res[1].Color)
+		assert.Equal(t, 2, len(res.HairColorTypes))
+		assert.Equal(t, "red", res.HairColorTypes[0].Color)
+		assert.Equal(t, "green", res.HairColorTypes[1].Color)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
