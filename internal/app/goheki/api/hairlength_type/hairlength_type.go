@@ -81,7 +81,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var hairLengthTypes []HairLengthType
+	var hairLengthTypesJson HairLengthTypesJson
 	query := `
 		SELECT
 			id,
@@ -100,13 +100,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				hairlength_type
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hairLengthTypes, query)
+		err := h.svc.DB.SelectContext(r.Context(), &hairLengthTypesJson.HairLengthTypes, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&hairLengthTypes)
+		err = json.NewEncoder(w).Encode(&hairLengthTypesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -123,13 +123,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hairLengthTypes, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &hairLengthTypesJson.HairLengthTypes, query, queryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&hairLengthTypes)
+		err = json.NewEncoder(w).Encode(&hairLengthTypesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -144,13 +144,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &hairLengthTypes, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &hairLengthTypesJson.HairLengthTypes, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(&hairLengthTypes)
+	err = json.NewEncoder(w).Encode(&hairLengthTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)

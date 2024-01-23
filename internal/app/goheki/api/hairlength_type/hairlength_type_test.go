@@ -40,14 +40,14 @@ func TestCreateHairLengthTypeHandler(t *testing.T) {
 	)
 	t.Run("hairlength_type登録", func(t *testing.T) {
 		// リクエストの作成
-		hairLengthType := []HairLengthType{
+		hairLengthType := HairLengthTypesJson{[]HairLengthType{
 			{
 				Length: "short",
 			},
 			{
 				Length: "long",
 			},
-		}
+		}}
 		b, err := json.Marshal(hairLengthType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/hairlength_type/create", bytes.NewBuffer(b))
@@ -100,14 +100,14 @@ func TestReadHairLengthTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var hairLengthTypes []HairLengthType
-		err := json.Unmarshal(w.Body.Bytes(), &hairLengthTypes)
+		var hairLengthTypesJson HairLengthTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairLengthTypesJson)
 		assert.NoError(t, err)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 2, len(hairLengthTypes))
-		assert.Equal(t, "short", hairLengthTypes[0].Length)
-		assert.Equal(t, "long", hairLengthTypes[1].Length)
+		assert.Equal(t, 2, len(hairLengthTypesJson.HairLengthTypes))
+		assert.Equal(t, "short", hairLengthTypesJson.HairLengthTypes[0].Length)
+		assert.Equal(t, "long", hairLengthTypesJson.HairLengthTypes[1].Length)
 	})
 
 	t.Run("hairlength_type1件取得", func(t *testing.T) {
@@ -119,12 +119,12 @@ func TestReadHairLengthTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var hairLengthType []HairLengthType
-		err := json.Unmarshal(w.Body.Bytes(), &hairLengthType)
+		var hairLengthTypesJson HairLengthTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairLengthTypesJson)
 		assert.NoError(t, err)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "short", hairLengthType[0].Length)
+		assert.Equal(t, "short", hairLengthTypesJson.HairLengthTypes[0].Length)
 	})
 
 	t.Run("hairlength_type2件取得", func(t *testing.T) {
@@ -136,15 +136,15 @@ func TestReadHairLengthTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var hairLengthTypes []HairLengthType
-		err := json.Unmarshal(w.Body.Bytes(), &hairLengthTypes)
+		var hairLengthTypesJson HairLengthTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairLengthTypesJson)
 		assert.NoError(t, err)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		assert.Equal(t, 2, len(hairLengthTypes))
-		assert.Equal(t, "short", hairLengthTypes[0].Length)
-		assert.Equal(t, "long", hairLengthTypes[1].Length)
+		assert.Equal(t, 2, len(hairLengthTypesJson.HairLengthTypes))
+		assert.Equal(t, "short", hairLengthTypesJson.HairLengthTypes[0].Length)
+		assert.Equal(t, "long", hairLengthTypesJson.HairLengthTypes[1].Length)
 	})
 
 	// ロールバック
@@ -181,7 +181,7 @@ func TestUpdateHairLengthTypeHandler(t *testing.T) {
 	)
 	t.Run("hairlength_type更新", func(t *testing.T) {
 		// リクエストの作成
-		updateHairLengthType := []HairLengthType{
+		updateHairLengthType := HairLengthTypesJson{[]HairLengthType{
 			{
 				ID:     f.HairLengthTypes[0].ID,
 				Length: "short",
@@ -190,7 +190,7 @@ func TestUpdateHairLengthTypeHandler(t *testing.T) {
 				ID:     f.HairLengthTypes[1].ID,
 				Length: "long",
 			},
-		}
+		}}
 		b, err := json.Marshal(updateHairLengthType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut, "/api/hairlength_type/update", bytes.NewBuffer(b))
@@ -202,12 +202,12 @@ func TestUpdateHairLengthTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairLengthTypes []HairLengthType
-		err = json.Unmarshal(w.Body.Bytes(), &hairLengthTypes)
+		var hairLengthTypesJson HairLengthTypesJson
+		err = json.Unmarshal(w.Body.Bytes(), &hairLengthTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(hairLengthTypes))
-		assert.Equal(t, "short", hairLengthTypes[0].Length)
-		assert.Equal(t, "long", hairLengthTypes[1].Length)
+		assert.Equal(t, 2, len(hairLengthTypesJson.HairLengthTypes))
+		assert.Equal(t, "short", hairLengthTypesJson.HairLengthTypes[0].Length)
+		assert.Equal(t, "long", hairLengthTypesJson.HairLengthTypes[1].Length)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
