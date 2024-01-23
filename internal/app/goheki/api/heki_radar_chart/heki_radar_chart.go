@@ -1,6 +1,7 @@
 package hekiradarchart
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
@@ -38,34 +39,34 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&HekiRadarChartsJson)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	err = HekiRadarChartsJson.Validate()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	for _, hrc := range HekiRadarChartsJson.HekiRadarCharts {
 		err = hrc.Validate()
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
+			log.Println(fmt.Sprintf("json validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hrc)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 	err = json.NewEncoder(w).Encode(&HekiRadarChartsJson)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -84,7 +85,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var hekiRadarChart []HekiRadarChart
+	var hekiRadarChartsJson HekiRadarChartsJson
 	query := `
 		SELECT
 			entry_id,
@@ -105,16 +106,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				heki_radar_chart
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hekiRadarChart, query)
+		err := h.svc.DB.SelectContext(r.Context(), &hekiRadarChartsJson.HekiRadarCharts, query)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&hekiRadarChart)
+		err = json.NewEncoder(w).Encode(&hekiRadarChartsJson)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
@@ -129,37 +130,37 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hekiRadarChart, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &hekiRadarChartsJson.HekiRadarCharts, query, queryIDs[0])
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = json.NewEncoder(w).Encode(&hekiRadarChart)
+		err = json.NewEncoder(w).Encode(&hekiRadarChartsJson)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &hekiRadarChart, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &hekiRadarChartsJson.HekiRadarCharts, query, args...)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(&hekiRadarChart)
+	err = json.NewEncoder(w).Encode(&hekiRadarChartsJson)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -191,34 +192,34 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&hekiRadarChartsJson)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	err = hekiRadarChartsJson.Validate()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	for _, hrc := range hekiRadarChartsJson.HekiRadarCharts {
 		err = hrc.Validate()
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
+			log.Println(fmt.Sprintf("json validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		_, err := h.svc.DB.NamedExecContext(r.Context(), query, hrc)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 	err = json.NewEncoder(w).Encode(&hekiRadarChartsJson)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -246,14 +247,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	err = delIDs.Validate()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if len(delIDs.IDs) == 0 {
@@ -267,35 +268,35 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err := h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = json.NewEncoder(w).Encode(&delIDs)
 		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

@@ -62,7 +62,7 @@ func TestCreateHekiRadarChartHandler(t *testing.T) {
 	)
 
 	// テストデータの作成
-	charts := []HekiRadarChart{
+	charts := HekiRadarChartsJson{[]HekiRadarChart{
 		{
 			EntryID: f.Entrys[0].ID,
 			AI:      1,
@@ -73,7 +73,7 @@ func TestCreateHekiRadarChartHandler(t *testing.T) {
 			AI:      3,
 			NU:      4,
 		},
-	}
+	}}
 
 	var indexService = service.NewIndexService(
 		tx,
@@ -94,7 +94,7 @@ func TestCreateHekiRadarChartHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
-		var res []HekiRadarChart
+		var res HekiRadarChartsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, charts, res)
@@ -177,10 +177,10 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
-		var res []HekiRadarChart
+		var res HekiRadarChartsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, charts, res)
+		assert.Equal(t, charts, res.HekiRadarCharts)
 	})
 
 	t.Run("heki_rader_chart1件取得", func(t *testing.T) {
@@ -195,10 +195,10 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
-		var res []HekiRadarChart
+		var res HekiRadarChartsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, charts[0], res[0])
+		assert.Equal(t, charts[0], res.HekiRadarCharts[0])
 	})
 
 	t.Run("heki_rader_chart2件取得", func(t *testing.T) {
@@ -213,10 +213,10 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
-		var res []HekiRadarChart
+		var res HekiRadarChartsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, charts, res)
+		assert.Equal(t, charts, res.HekiRadarCharts)
 	})
 
 	// ロールバック
@@ -269,7 +269,7 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 	)
 
 	// テストデータの作成
-	updateCharts := []HekiRadarChart{
+	updateCharts := HekiRadarChartsJson{[]HekiRadarChart{
 		{
 			EntryID: f.Entrys[0].ID,
 			AI:      100,
@@ -280,7 +280,7 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 			AI:      80,
 			NU:      70,
 		},
-	}
+	}}
 
 	var indexService = service.NewIndexService(
 		tx,
@@ -301,7 +301,7 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
-		var res []HekiRadarChart
+		var res HekiRadarChartsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateCharts, res)
