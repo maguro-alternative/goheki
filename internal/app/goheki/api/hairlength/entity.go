@@ -16,6 +16,16 @@ func (h *HairLength) Validate() error {
 	)
 }
 
+type HairLengthsJson struct {
+	HairLengths []HairLength `json:"hairlengths"`
+}
+
+func (h *HairLengthsJson) Validate() error {
+	return validation.ValidateStruct(h,
+		validation.Field(&h.HairLengths, validation.Required),
+	)
+}
+
 type IDs struct {
 	IDs []int64 `json:"ids"`
 }
