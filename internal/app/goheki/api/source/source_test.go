@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/maguro-alternative/goheki/configs/envconfig"
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
@@ -20,15 +19,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-type Entry struct {
-	ID        *int64    `db:"id" json:"id"`
-	SourceID  int64     `db:"source_id" json:"source_id"`
-	Name      string    `db:"name" json:"name"`
-	Image     string    `db:"image" json:"image"`
-	Content   string    `db:"content" json:"content"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-}
 
 func TestCreateSourceHandler(t *testing.T) {
 	t.Run("source登録", func(t *testing.T) {
@@ -44,7 +34,7 @@ func TestCreateSourceHandler(t *testing.T) {
 		assert.NoError(t, err)
 
 		// テストデータの準備
-		sources := []Source{
+		sources := SourcesJson{[]Source{
 			{
 				Name: "テストソース1",
 				Url:  "https://example.com/image1.png",
@@ -55,7 +45,7 @@ func TestCreateSourceHandler(t *testing.T) {
 				Url:  "https://example.com/image2.png",
 				Type: "game",
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -71,17 +61,26 @@ func TestCreateSourceHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
-
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Source
-		err = json.Unmarshal(w.Body.Bytes(), &sources)
+		var actuals SourcesJson
+		var actual []Source
+		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, actuals[0].Name, sources[0].Name)
+		assert.Equal(t, actuals, sources)
 
-		assert.Equal(t, actuals[1].Name, sources[1].Name)
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM source")
+		assert.NoError(t, err)
+
+		assert.Equal(t, sources.Sources[0].Name, actual[0].Name)
+		assert.Equal(t, sources.Sources[0].Url, actual[0].Url)
+		assert.Equal(t, sources.Sources[0].Type, actual[0].Type)
+		assert.Equal(t, sources.Sources[1].Name, actual[1].Name)
+		assert.Equal(t, sources.Sources[1].Url, actual[1].Url)
+		assert.Equal(t, sources.Sources[1].Type, actual[1].Type)
+
+		tx.RollbackCtx(ctx)
 	})
 }
 
@@ -101,12 +100,12 @@ func TestReadSourceHandler(t *testing.T) {
 		// データベースの準備
 		f := &fixtures.Fixture{DBv1: tx}
 		f.Build(t,
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース1"
 				s.Url = "https://example.com/image1.png"
 				s.Type = "anime"
 			}),
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース2"
 				s.Url = "https://example.com/image2.png"
 				s.Type = "game"
@@ -114,7 +113,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 
 		// テストデータの準備
-		sources := []Source{
+		sources := SourcesJson{[]Source{
 			{
 				Name: f.Sources[0].Name,
 				Url:  f.Sources[0].Url,
@@ -125,7 +124,7 @@ func TestReadSourceHandler(t *testing.T) {
 				Url:  f.Sources[1].Url,
 				Type: f.Sources[1].Type,
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -144,13 +143,16 @@ func TestReadSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Source
+		var actuals SourcesJson
 		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, actuals[0].Name, sources[0].Name)
-
-		assert.Equal(t, actuals[1].Name, sources[1].Name)
+		assert.Equal(t, sources.Sources[0].Name, actuals.Sources[0].Name)
+		assert.Equal(t, sources.Sources[0].Url, actuals.Sources[0].Url)
+		assert.Equal(t, sources.Sources[0].Type, actuals.Sources[0].Type)
+		assert.Equal(t, sources.Sources[1].Name, actuals.Sources[1].Name)
+		assert.Equal(t, sources.Sources[1].Url, actuals.Sources[1].Url)
+		assert.Equal(t, sources.Sources[1].Type, actuals.Sources[1].Type)
 	})
 
 	t.Run("source1件取得", func(t *testing.T) {
@@ -168,12 +170,12 @@ func TestReadSourceHandler(t *testing.T) {
 		// データベースの準備
 		f := &fixtures.Fixture{DBv1: tx}
 		f.Build(t,
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース1"
 				s.Url = "https://example.com/image1.png"
 				s.Type = "anime"
 			}),
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース2"
 				s.Url = "https://example.com/image2.png"
 				s.Type = "game"
@@ -181,7 +183,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 
 		// テストデータの準備
-		sources := []Source{
+		sources := SourcesJson{[]Source{
 			{
 				Name: f.Sources[0].Name,
 				Url:  f.Sources[0].Url,
@@ -192,8 +194,7 @@ func TestReadSourceHandler(t *testing.T) {
 				Url:  f.Sources[1].Url,
 				Type: f.Sources[1].Type,
 			},
-		}
-
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -212,11 +213,13 @@ func TestReadSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Source
+		var actuals SourcesJson
 		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, sources[0].Name, actuals[0].Name)
+		assert.Equal(t, sources.Sources[0].Name, actuals.Sources[0].Name)
+		assert.Equal(t, sources.Sources[0].Url, actuals.Sources[0].Url)
+		assert.Equal(t, sources.Sources[0].Type, actuals.Sources[0].Type)
 	})
 
 	t.Run("source2件取得", func(t *testing.T) {
@@ -234,12 +237,12 @@ func TestReadSourceHandler(t *testing.T) {
 		// データベースの準備
 		f := &fixtures.Fixture{DBv1: tx}
 		f.Build(t,
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース1"
 				s.Url = "https://example.com/image1.png"
 				s.Type = "anime"
 			}),
-			fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+			fixtures.NewSource(ctx, func(s *fixtures.Source) {
 				s.Name = "テストソース2"
 				s.Url = "https://example.com/image2.png"
 				s.Type = "game"
@@ -247,7 +250,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 
 		// テストデータの準備
-		sources := []Source{
+		sources := SourcesJson{[]Source{
 			{
 				Name: f.Sources[0].Name,
 				Url:  f.Sources[0].Url,
@@ -258,7 +261,7 @@ func TestReadSourceHandler(t *testing.T) {
 				Url:  f.Sources[1].Url,
 				Type: f.Sources[1].Type,
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -277,13 +280,16 @@ func TestReadSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Source
+		var actuals SourcesJson
 		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, sources[0].Name, actuals[0].Name)
-
-		assert.Equal(t, sources[1].Name, actuals[1].Name)
+		assert.Equal(t, sources.Sources[0].Name, actuals.Sources[0].Name)
+		assert.Equal(t, sources.Sources[0].Url, actuals.Sources[0].Url)
+		assert.Equal(t, sources.Sources[0].Type, actuals.Sources[0].Type)
+		assert.Equal(t, sources.Sources[1].Name, actuals.Sources[1].Name)
+		assert.Equal(t, sources.Sources[1].Url, actuals.Sources[1].Url)
+		assert.Equal(t, sources.Sources[1].Type, actuals.Sources[1].Type)
 	})
 }
 
@@ -301,12 +307,12 @@ func TestUpdateSourceHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
-		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}),
-		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"
@@ -314,7 +320,7 @@ func TestUpdateSourceHandler(t *testing.T) {
 	)
 	t.Run("source更新", func(t *testing.T) {
 		// テストデータの準備
-		updateSource := []Source{
+		updateSource := SourcesJson{[]Source{
 			{
 				Name: "テストソース1更新",
 				Url:  "https://example.com/image1.png",
@@ -325,7 +331,7 @@ func TestUpdateSourceHandler(t *testing.T) {
 				Url:  "https://example.com/image2.png",
 				Type: "game",
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -345,13 +351,11 @@ func TestUpdateSourceHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Source
+		var actuals SourcesJson
 		err = json.Unmarshal(w.Body.Bytes(), &actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, updateSource[0].Name, actuals[0].Name)
-
-		assert.Equal(t, updateSource[1].Name, actuals[1].Name)
+		assert.Equal(t, updateSource, actuals)
 	})
 }
 
@@ -369,12 +373,12 @@ func TestDeleteSourceHandler(t *testing.T) {
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
-		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース1"
 			s.Url = "https://example.com/image1.png"
 			s.Type = "anime"
 		}),
-		fixtures.NewSource(ctx, func (s *fixtures.Source)  {
+		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
 			s.Url = "https://example.com/image2.png"
 			s.Type = "game"

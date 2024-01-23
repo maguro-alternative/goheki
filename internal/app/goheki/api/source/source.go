@@ -80,7 +80,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var sources []Source
+	var sourcesJson SourcesJson
 	query := `
 		SELECT
 			id,
@@ -103,16 +103,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				source
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &sources, query)
+		err := h.svc.DB.SelectContext(r.Context(), &sourcesJson.Sources, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		if len(sources) == 0 {
+		if len(sourcesJson.Sources) == 0 {
 			log.Printf("sources is empty")
 			http.Error(w, "sources is empty", http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&sources)
+		err = json.NewEncoder(w).Encode(&sourcesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -130,16 +130,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &sources, query, entryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &sourcesJson.Sources, query, entryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		if len(sources) == 0 {
+		if len(sourcesJson.Sources) == 0 {
 			log.Printf("sources is empty")
 			http.Error(w, "sources is empty", http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&sources)
+		err = json.NewEncoder(w).Encode(&sourcesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -152,12 +152,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(entryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &sources, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &sourcesJson.Sources, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&sources)
+	err = json.NewEncoder(w).Encode(&sourcesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
