@@ -66,7 +66,7 @@ func TestCreateHairStyleHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	hairStyles := []HairStyle{
+	hairStyles := HairStylesJson{[]HairStyle{
 		{
 			EntryID: f.Entrys[0].ID,
 			StyleID: f.HairStyleTypes[0].ID,
@@ -75,7 +75,7 @@ func TestCreateHairStyleHandler(t *testing.T) {
 			EntryID: f.Entrys[1].ID,
 			StyleID: f.HairStyleTypes[1].ID,
 		},
-	}
+	}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -92,7 +92,7 @@ func TestCreateHairStyleHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairStyle
+		var res HairStylesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, hairStyles, res)
@@ -172,11 +172,11 @@ func TestReadHairStyleHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairStyle
+		var res HairStylesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, hairStyles, res)
+		assert.Equal(t, 2, len(res.HairStyles))
+		assert.Equal(t, hairStyles, res.HairStyles)
 	})
 
 	t.Run("hairstyle1件取得", func(t *testing.T) {
@@ -188,11 +188,11 @@ func TestReadHairStyleHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairStyle
+		var res HairStylesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, len(res))
-		assert.Equal(t, hairStyles[0], res[0])
+		assert.Equal(t, 1, len(res.HairStyles))
+		assert.Equal(t, hairStyles[0], res.HairStyles[0])
 	})
 
 	t.Run("hairstyle2件取得", func(t *testing.T) {
@@ -204,11 +204,11 @@ func TestReadHairStyleHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairStyle
+		var res HairStylesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, hairStyles, res)
+		assert.Equal(t, 2, len(res.HairStyles))
+		assert.Equal(t, hairStyles, res.HairStyles)
 	})
 
 	// ロールバック
@@ -264,7 +264,7 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	updateHairStyles := []HairStyle{
+	updateHairStyles := HairStylesJson{[]HairStyle{
 		{
 			EntryID: f.Entrys[0].ID,
 			StyleID: f.HairStyleTypes[1].ID,
@@ -273,7 +273,7 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 			EntryID: f.Entrys[1].ID,
 			StyleID: f.HairStyleTypes[0].ID,
 		},
-	}
+	}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -290,7 +290,7 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var res []HairStyle
+		var res HairStylesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateHairStyles, res)
