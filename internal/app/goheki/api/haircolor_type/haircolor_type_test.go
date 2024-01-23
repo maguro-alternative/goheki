@@ -100,15 +100,15 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var res []HairColorType
+		var res HairColorTypesJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "black", res[0].Color)
-		assert.Equal(t, "blue", res[1].Color)
+		assert.Equal(t, 2, len(res.HairColorTypes))
+		assert.Equal(t, "black", res.HairColorTypes[0].Color)
+		assert.Equal(t, "blue", res.HairColorTypes[1].Color)
 	})
 
 	t.Run("haircolor_type1件取得", func(t *testing.T) {
@@ -120,14 +120,14 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var res []HairColorType
+		var res HairColorTypesJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 1, len(res))
-		assert.Equal(t, "black", res[0].Color)
+		assert.Equal(t, 1, len(res.HairColorTypes))
+		assert.Equal(t, "black", res.HairColorTypes[0].Color)
 	})
 
 	t.Run("haircolor_type2件取得", func(t *testing.T) {
@@ -139,15 +139,15 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		h := NewReadHandler(indexService)
 		h.ServeHTTP(w, req)
 
-		var res []HairColorType
+		var res HairColorTypesJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "black", res[0].Color)
-		assert.Equal(t, "blue", res[1].Color)
+		assert.Equal(t, 2, len(res.HairColorTypes))
+		assert.Equal(t, "black", res.HairColorTypes[0].Color)
+		assert.Equal(t, "blue", res.HairColorTypes[1].Color)
 	})
 
 	// ロールバック
