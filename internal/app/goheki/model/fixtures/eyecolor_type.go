@@ -6,7 +6,7 @@ import (
 )
 
 type EyeColorType struct {
-	ID    *int64 `db:"id"`
+	ID    int64 `db:"id"`
 	Color string `db:"color"`
 }
 
@@ -31,7 +31,7 @@ func NewEyeColorType(ctx context.Context, setter ...func(e *EyeColorType)) *Mode
 			switch connectingModel.(type) {
 			case *EyeColor:
 				eyeColor := connectingModel.(*EyeColor)
-				eyeColor.ColorID = *eyeColorType.ID
+				eyeColor.ColorID = eyeColorType.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, eyeColorType)
 			}

@@ -104,7 +104,7 @@ func TestCreateEntryTagHandler(t *testing.T) {
 
 	t.Run("entry_tag登録失敗", func(t *testing.T) {
 		entryTags := IDs{
-			IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID},
+			IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID},
 		}
 
 		var indexService = service.NewIndexService(
@@ -238,7 +238,7 @@ func TestReadEntryTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", *f.EntryTags[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", f.EntryTags[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -270,7 +270,7 @@ func TestReadEntryTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", *f.EntryTags[0].ID, *f.EntryTags[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", f.EntryTags[0].ID, f.EntryTags[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -449,7 +449,7 @@ func TestDeleteEntryTagHandler(t *testing.T) {
 		}),
 	)
 	t.Run("entry_tag削除", func(t *testing.T) {
-		delIDs := IDs{IDs: []int64{*f.EntryTags[0].ID, *f.EntryTags[1].ID}}
+		delIDs := IDs{IDs: []int64{f.EntryTags[0].ID, f.EntryTags[1].ID}}
 		var indexService = service.NewIndexService(
 			tx,
 			cookie.Store,

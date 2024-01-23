@@ -52,7 +52,21 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	if len(entriesJson.Entries) == 0 {
+		log.Println("json unexpected error: empty body")
+		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
+	}
+	err = entriesJson.Validate()
+	if err != nil {
+		log.Println(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 	for _, entry := range entriesJson.Entries {
+		err = entry.Validate()
+		if err != nil {
+			log.Println(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
 			log.Println(fmt.Sprintf("insert error: %v", err))
@@ -200,7 +214,17 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println("json unexpected error: empty body")
 		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
 	}
+	err = entriesJson.Validate()
+	if err != nil {
+		log.Println(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 	for _, entry := range entriesJson.Entries {
+		err = entry.Validate()
+		if err != nil {
+			log.Println(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
 			log.Println(fmt.Sprintf("update error: %v", err))
@@ -243,6 +267,11 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(jsonBytes, &delIDs)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Println(fmt.Sprintf("validation error: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	if len(delIDs.IDs) == 0 {

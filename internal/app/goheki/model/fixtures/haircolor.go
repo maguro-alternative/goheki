@@ -29,7 +29,7 @@ func NewHairColor(ctx context.Context, setter ...func(h *HairColor)) *ModelConne
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				hairColor.EntryID = *entry.ID
+				hairColor.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, hairColor)
 			}

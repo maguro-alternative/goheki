@@ -6,7 +6,7 @@ import (
 )
 
 type PersonalityType struct {
-	ID      *int64 `db:"id"`
+	ID      int64 `db:"id"`
 	Type    string `db:"type"`
 }
 

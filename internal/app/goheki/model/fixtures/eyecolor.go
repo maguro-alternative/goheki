@@ -29,10 +29,10 @@ func NewEyeColor(ctx context.Context, setter ...func(e *EyeColor)) *ModelConnect
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				eyeColor.EntryID = *entry.ID
+				eyeColor.EntryID = entry.ID
 			case *EyeColorType:
 				eyeColorType := connectingModel.(*EyeColorType)
-				eyeColor.ColorID = *eyeColorType.ID
+				eyeColor.ColorID = eyeColorType.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, eyeColor)
 			}

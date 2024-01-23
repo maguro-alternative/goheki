@@ -6,7 +6,7 @@ import (
 )
 
 type HairColorType struct {
-	ID    *int64 `db:"id"`
+	ID    int64  `db:"id"`
 	Color string `db:"color"`
 }
 
@@ -31,7 +31,7 @@ func NewHairColorType(ctx context.Context, setter ...func(h *HairColorType)) *Mo
 			switch connectingModel.(type) {
 			case *HairColor:
 				hairColor := connectingModel.(*HairColor)
-				hairColor.ColorID = *hairColorType.ID
+				hairColor.ColorID = hairColorType.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, hairColorType)
 			}

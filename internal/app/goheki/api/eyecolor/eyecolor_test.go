@@ -74,12 +74,12 @@ func TestCreateEyeColorHandler(t *testing.T) {
 		eyeColorsJson := EyeColorsJson{
 			[]EyeColor{
 				{
-					EntryID: *f.Entrys[0].ID,
-					ColorID: *f.EyeColorTypes[0].ID,
+					EntryID: f.Entrys[0].ID,
+					ColorID: f.EyeColorTypes[0].ID,
 				},
 				{
-					EntryID: *f.Entrys[1].ID,
-					ColorID: *f.EyeColorTypes[1].ID,
+					EntryID: f.Entrys[1].ID,
+					ColorID: f.EyeColorTypes[1].ID,
 				},
 			},
 		}
@@ -105,7 +105,7 @@ func TestCreateEyeColorHandler(t *testing.T) {
 
 	t.Run("eyecolor作成失敗", func(t *testing.T) {
 		// リクエストを作成
-		ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
+		ids := []int64{f.Entrys[0].ID, f.Entrys[1].ID}
 		b, err := json.Marshal(ids)
 		assert.NoError(t, err)
 		req, err := http.NewRequest(http.MethodPost, "/api/eyecolor/create", bytes.NewBuffer(b))
@@ -152,7 +152,7 @@ func TestReadEyeColorHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[0].ID
+			s.ColorID = f.EyeColorTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -164,7 +164,7 @@ func TestReadEyeColorHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[1].ID
+			s.ColorID = f.EyeColorTypes[1].ID
 		}))),
 	)
 	// テスト対象のハンドラを作成
@@ -194,7 +194,7 @@ func TestReadEyeColorHandler(t *testing.T) {
 
 	t.Run("eyecolor1件取得", func(t *testing.T) {
 		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d", f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスを作成
 		rr := httptest.NewRecorder()
@@ -211,7 +211,7 @@ func TestReadEyeColorHandler(t *testing.T) {
 
 	t.Run("eyecolor2件取得", func(t *testing.T) {
 		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d&entry_id=%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスを作成
 		rr := httptest.NewRecorder()
@@ -262,7 +262,7 @@ func TestUpdateEyeColorHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[0].ID
+			s.ColorID = f.EyeColorTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -274,7 +274,7 @@ func TestUpdateEyeColorHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[1].ID
+			s.ColorID = f.EyeColorTypes[1].ID
 		}))),
 	)
 	// テスト対象のハンドラを作成
@@ -287,12 +287,12 @@ func TestUpdateEyeColorHandler(t *testing.T) {
 		updateEyeColorsJson := EyeColorsJson{
 			[]EyeColor{
 				{
-					EntryID: *f.Entrys[0].ID,
-					ColorID: *f.EyeColorTypes[1].ID,
+					EntryID: f.Entrys[0].ID,
+					ColorID: f.EyeColorTypes[1].ID,
 				},
 				{
-					EntryID: *f.Entrys[1].ID,
-					ColorID: *f.EyeColorTypes[0].ID,
+					EntryID: f.Entrys[1].ID,
+					ColorID: f.EyeColorTypes[0].ID,
 				},
 			},
 		}
@@ -355,7 +355,7 @@ func TestDeleteEyeColorHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[0].ID
+			s.ColorID = f.EyeColorTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -367,7 +367,7 @@ func TestDeleteEyeColorHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewEyeColor(ctx, func(s *fixtures.EyeColor) {
-			s.ColorID = *f.EyeColorTypes[1].ID
+			s.ColorID = f.EyeColorTypes[1].ID
 		}))),
 	)
 	// テスト対象のハンドラを作成
@@ -377,7 +377,7 @@ func TestDeleteEyeColorHandler(t *testing.T) {
 		env,
 	)
 	t.Run("eyecolor削除", func(t *testing.T) {
-		delIDs := IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
+		delIDs := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
 		eJson, err := json.Marshal(&delIDs)
 		assert.NoError(t, err)
 		// リクエストを作成

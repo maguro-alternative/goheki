@@ -29,7 +29,7 @@ func NewPersonality(ctx context.Context, setter ...func(p *Personality)) *ModelC
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				personality.EntryID = *entry.ID
+				personality.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, personality)
 			}

@@ -47,9 +47,18 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("json unmarshal error: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-
+	err = entryTagsJson.Validate()
+	if err != nil {
+		log.Println(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 	for _, entryTag := range entryTagsJson.EntryTags {
-		_, err := h.svc.DB.NamedExecContext(r.Context(), query, entryTag)
+		err = entryTag.Validate()
+		if err != nil {
+			log.Println(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entryTag)
 		if err != nil {
 			log.Println(fmt.Sprintf("insert error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)

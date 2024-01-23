@@ -89,7 +89,7 @@ func TestCreateBEHHandler(t *testing.T) {
 	bwhsJson := BWHsJson{
 		BWHs: bwhs,
 	}
-	ids := IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
+	ids := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -154,7 +154,7 @@ func TestCreateBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	// ロールバック
@@ -261,7 +261,7 @@ func TestReadBEHHandler(t *testing.T) {
 
 	t.Run("bwh1件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d", f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -278,7 +278,7 @@ func TestReadBEHHandler(t *testing.T) {
 
 	t.Run("bwh2件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d&entry_id=%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -471,7 +471,7 @@ func TestDeleteBEHHandler(t *testing.T) {
 	)
 
 	t.Run("bwh削除", func(t *testing.T) {
-		delIDs := IDs{IDs: []int64{*f.BWHs[0].EntryID}}
+		delIDs := IDs{IDs: []int64{f.BWHs[0].EntryID}}
 		h := NewDeleteHandler(indexService)
 		bJson, err := json.Marshal(delIDs)
 		req := httptest.NewRequest(http.MethodDelete, "/api/bwh/delete", bytes.NewBuffer(bJson))

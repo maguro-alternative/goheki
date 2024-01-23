@@ -47,7 +47,19 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = eyeColorsJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	for _, eyeColor := range eyeColorsJson.EyeColors {
+		err = eyeColor.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColor)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
@@ -181,7 +193,19 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = eyeColorsJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	for _, eyeColor := range eyeColorsJson.EyeColors {
+		err = eyeColor.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColor)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
@@ -226,6 +250,12 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(jsonBytes, &delIDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

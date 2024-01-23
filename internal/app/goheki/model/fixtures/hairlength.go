@@ -29,7 +29,7 @@ func NewHairLength(ctx context.Context, setter ...func(h *HairLength)) *ModelCon
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				heirLength.EntryID = *entry.ID
+				heirLength.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, heirLength)
 			}

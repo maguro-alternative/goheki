@@ -51,14 +51,14 @@ func TestCreateEntryHandler(t *testing.T) {
 		entriesJson := EntriesJson{
 			[]Entry{
 				{
-					SourceID:  *f.Sources[0].ID,
+					SourceID:  f.Sources[0].ID,
 					Name:      "雪泉",
 					Image:     "https://example.com/image1.png",
 					Content:   "かわいい",
 					CreatedAt: fixedTime,
 				},
 				{
-					SourceID:  *f.Sources[1].ID,
+					SourceID:  f.Sources[1].ID,
 					Name:      "四条貴音",
 					Image:     "https://example.com/image2.png",
 					Content:   "お姫ちん",
@@ -177,14 +177,14 @@ func TestReadEntryHandler(t *testing.T) {
 	)
 	entrys := []Entry{
 		{
-			SourceID:  *f.Sources[0].ID,
+			SourceID:  f.Sources[0].ID,
 			Name:      f.Entrys[0].Name,
 			Image:     f.Entrys[0].Image,
 			Content:   f.Entrys[0].Content,
 			CreatedAt: f.Entrys[0].CreatedAt,
 		},
 		{
-			SourceID:  *f.Sources[1].ID,
+			SourceID:  f.Sources[1].ID,
 			Name:      f.Entrys[1].Name,
 			Image:     f.Entrys[1].Image,
 			Content:   f.Entrys[1].Content,
@@ -238,7 +238,7 @@ func TestReadEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", *f.Entrys[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -273,7 +273,7 @@ func TestReadEntryHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -350,7 +350,7 @@ func TestUpdateEntryHandler(t *testing.T) {
 		[]Entry{
 			{
 				ID:        f.Entrys[0].ID,
-				SourceID:  *f.Sources[0].ID,
+				SourceID:  f.Sources[0].ID,
 				Name:      "テストエントリ3",
 				Image:     "https://example.com/image3.png",
 				Content:   "テスト内容3",
@@ -358,7 +358,7 @@ func TestUpdateEntryHandler(t *testing.T) {
 			},
 			{
 				ID:        f.Entrys[1].ID,
-				SourceID:  *f.Sources[1].ID,
+				SourceID:  f.Sources[1].ID,
 				Name:      "テストエントリ4",
 				Image:     "https://example.com/image4.png",
 				Content:   "テスト内容4",
@@ -449,7 +449,7 @@ func TestDeleteEntryHandler(t *testing.T) {
 		})),
 	)
 	t.Run("entry削除", func(t *testing.T) {
-		ids := []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}
+		ids := []int64{f.Entrys[0].ID, f.Entrys[1].ID}
 		delIDs := IDs{IDs: ids}
 		var indexService = service.NewIndexService(
 			tx,

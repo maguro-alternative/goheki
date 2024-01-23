@@ -6,9 +6,9 @@ import (
 )
 
 type HekiRadarChart struct {
-	EntryID *int64 `db:"entry_id"`
-	AI      int64  `db:"ai"`
-	NU      int64  `db:"nu"`
+	EntryID int64 `db:"entry_id"`
+	AI      int64 `db:"ai"`
+	NU      int64 `db:"nu"`
 }
 
 func NewHekiRadarChart(ctx context.Context, setter ...func(h *HekiRadarChart)) *ModelConnector {

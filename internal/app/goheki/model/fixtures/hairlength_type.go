@@ -6,7 +6,7 @@ import (
 )
 
 type HairLengthType struct {
-	ID     *int64 `db:"id"`
+	ID     int64  `db:"id"`
 	Length string `db:"length"`
 }
 

@@ -6,8 +6,8 @@ import (
 )
 
 type HairStyle struct {
-	EntryID *int64 `db:"entry_id"`
-	StyleID *int64 `db:"style_id"`
+	EntryID int64 `db:"entry_id"`
+	StyleID int64 `db:"style_id"`
 }
 
 func NewHairStyle(ctx context.Context, setter ...func(h *HairStyle)) *ModelConnector {

@@ -9,7 +9,7 @@ import (
 )
 
 type Entry struct {
-	ID        *int64    `db:"id"`
+	ID        int64     `db:"id"`
 	SourceID  int64     `db:"source_id"`
 	Name      string    `db:"name"`
 	Image     string    `db:"image"`
@@ -48,16 +48,16 @@ func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 				bwh.EntryID = entry.ID
 			case *Personality:
 				personality := connectingModel.(*Personality)
-				personality.EntryID = *entry.ID
+				personality.EntryID = entry.ID
 			case *Link:
 				link := connectingModel.(*Link)
 				link.EntryID = entry.ID
 			case *HairColor:
 				hairColor := connectingModel.(*HairColor)
-				hairColor.EntryID = *entry.ID
+				hairColor.EntryID = entry.ID
 			case *HairLength:
 				hairLength := connectingModel.(*HairLength)
-				hairLength.EntryID = *entry.ID
+				hairLength.EntryID = entry.ID
 			case *HairStyle:
 				hairStyle := connectingModel.(*HairStyle)
 				hairStyle.EntryID = entry.ID
@@ -66,7 +66,7 @@ func NewEntry(ctx context.Context, setter ...func(e *Entry)) *ModelConnector {
 				hekiRadarChart.EntryID = entry.ID
 			case *EyeColor:
 				eyeColor := connectingModel.(*EyeColor)
-				eyeColor.EntryID = *entry.ID
+				eyeColor.EntryID = entry.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, entry)
 			}

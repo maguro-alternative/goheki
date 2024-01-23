@@ -3,6 +3,7 @@ package eyecolortype
 import (
 	"fmt"
 	"log"
+	"io"
 
 	"github.com/maguro-alternative/goheki/internal/app/goheki/service"
 	"github.com/maguro-alternative/goheki/pkg/db"
@@ -33,13 +34,30 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:color
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorTypesJson)
+	jsonBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &eyeColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = eyeColorTypesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	for _, eyeColorType := range eyeColorTypesJson.EyeColorTypes {
+		err = eyeColorType.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColorType)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
@@ -169,13 +187,30 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&eyeColorTypesJson)
+	jsonBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &eyeColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = eyeColorTypesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	for _, eyeColorType := range eyeColorTypesJson.EyeColorTypes {
+		err = eyeColorType.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, eyeColorType)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
@@ -212,9 +247,20 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id IN (?)
 	`
-	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	jsonBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(fmt.Sprintf("read error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = json.Unmarshal(jsonBytes, &delIDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

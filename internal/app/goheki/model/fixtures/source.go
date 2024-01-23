@@ -8,7 +8,7 @@ import (
 )
 
 type Source struct {
-	ID   *int64 `db:"id"`
+	ID   int64  `db:"id"`
 	Name string `db:"name"`
 	Url  string `db:"url"`
 	Type string `db:"type"`
@@ -37,7 +37,7 @@ func NewSource(ctx context.Context, setter ...func(s *Source)) *ModelConnector {
 			switch connectingModel.(type) {
 			case *Entry:
 				entry := connectingModel.(*Entry)
-				entry.SourceID = *source.ID
+				entry.SourceID = source.ID
 			default:
 				t.Fatalf("%T cannot be connected to %T", connectingModel, source)
 			}

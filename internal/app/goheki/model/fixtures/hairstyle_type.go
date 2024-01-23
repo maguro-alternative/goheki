@@ -6,7 +6,7 @@ import (
 )
 
 type HairStyleType struct {
-	ID    *int64 `db:"id"`
+	ID    int64  `db:"id"`
 	Style string `db:"style"`
 }
 
