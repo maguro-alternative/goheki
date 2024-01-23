@@ -129,7 +129,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "db error", http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &hairLengthsJson, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &hairLengthsJson.HairLengths, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		http.Error(w, "db error", http.StatusInternalServerError)
