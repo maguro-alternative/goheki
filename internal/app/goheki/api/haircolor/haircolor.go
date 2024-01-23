@@ -96,7 +96,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				haircolor
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hairColorsJson, query)
+		err := h.svc.DB.SelectContext(r.Context(), &hairColorsJson.HairColors, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -117,7 +117,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &hairColorsJson, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &hairColorsJson.HairColors, query, queryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -135,7 +135,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &hairColorsJson, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &hairColorsJson.HairColors, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)

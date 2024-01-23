@@ -79,6 +79,30 @@ func TestCreateHairColorHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("haircolor登録失敗", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewCreateHandler(indexService)
+		ids := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
+		body, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/haircolor/create", bytes.NewBuffer(body))
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		// データベースの検証
+		var hairColors []HairColor
+		err = tx.SelectContext(ctx, &hairColors, "SELECT * FROM haircolor")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(hairColors))
+	})
+
 	t.Run("haircolor登録", func(t *testing.T) {
 		// リクエストの準備
 		handler := NewCreateHandler(indexService)
@@ -109,28 +133,6 @@ func TestCreateHairColorHandler(t *testing.T) {
 		assert.Equal(t, f.HairColorTypes[0].ID, hairColors[1].ColorID)
 	})
 
-	t.Run("haircolor登録失敗", func(t *testing.T) {
-		// リクエストの準備
-		handler := NewCreateHandler(indexService)
-		ids := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
-		body, err := json.Marshal(ids)
-		assert.NoError(t, err)
-		req := httptest.NewRequest(http.MethodPost, "/api/haircolor/create", bytes.NewBuffer(body))
-
-		// レスポンスの準備
-		w := httptest.NewRecorder()
-		// ハンドラの実行
-		handler.ServeHTTP(w, req)
-
-		// レスポンスの検証
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		// データベースの検証
-		var hairColors []HairColor
-		err = tx.SelectContext(ctx, &hairColors, "SELECT * FROM haircolor")
-		assert.NoError(t, err)
-		assert.Equal(t, 0, len(hairColors))
-	})
 	// トランザクションのロールバック
 	tx.RollbackCtx(ctx)
 }
@@ -201,10 +203,12 @@ func TestReadHairColorHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		var res []HairColor
+		var res HairColorsJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(res))
+		assert.Equal(t, 2, len(res.HairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, res.HairColors[0].ColorID)
+		assert.Equal(t, f.HairColors[1].ColorID, res.HairColors[1].ColorID)
 	})
 
 	t.Run("haircolor1件取得", func(t *testing.T) {
@@ -220,11 +224,11 @@ func TestReadHairColorHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		var res []HairColor
+		var res HairColorsJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, len(res))
-		assert.Equal(t, f.HairColors[0].ColorID, res[0].ColorID)
+		assert.Equal(t, 1, len(res.HairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, res.HairColors[0].ColorID)
 	})
 
 	t.Run("haircolor2件取得", func(t *testing.T) {
@@ -240,12 +244,12 @@ func TestReadHairColorHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		var res []HairColor
+		var res HairColorsJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, f.HairColors[0].ColorID, res[0].ColorID)
-		assert.Equal(t, f.HairColors[1].ColorID, res[1].ColorID)
+		assert.Equal(t, 2, len(res.HairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, res.HairColors[0].ColorID)
+		assert.Equal(t, f.HairColors[1].ColorID, res.HairColors[1].ColorID)
 	})
 
 	// ロールバック
@@ -303,7 +307,7 @@ func TestUpdateHairColorHandler(t *testing.T) {
 	)
 
 	// テストデータの準備
-	updateHairColors := []HairColor{
+	updateHairColors := HairColorsJson{[]HairColor{
 		{
 			EntryID: f.Entrys[0].ID,
 			ColorID: f.HairColorTypes[1].ID,
@@ -312,7 +316,7 @@ func TestUpdateHairColorHandler(t *testing.T) {
 			EntryID: f.Entrys[1].ID,
 			ColorID: f.HairColorTypes[1].ID,
 		},
-	}
+	}}
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
@@ -333,7 +337,7 @@ func TestUpdateHairColorHandler(t *testing.T) {
 		tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
-		var res []HairColor
+		var res HairColorsJson
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateHairColors, res)
