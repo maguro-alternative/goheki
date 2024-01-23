@@ -83,7 +83,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var links []Link
+	var linksJson LinksJson
 	query := `
 		SELECT
 			entry_id,
@@ -108,12 +108,16 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				link
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &links, query)
+		err := h.svc.DB.SelectContext(r.Context(), &linksJson, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&links)
+		err = json.NewEncoder(w).Encode(&linksJson)
+		if err != nil {
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	} else if len(queryIDs) == 1 {
 		query = `
@@ -128,12 +132,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &links, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &linksJson.Links, query, queryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&links)
+		err = json.NewEncoder(w).Encode(&linksJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -146,12 +150,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &links, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &linksJson.Links, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&links)
+	err = json.NewEncoder(w).Encode(&linksJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
