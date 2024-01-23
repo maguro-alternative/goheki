@@ -40,14 +40,14 @@ func TestCreateHairStyleTypeHandler(t *testing.T) {
 	)
 	t.Run("hairstyle_type登録", func(t *testing.T) {
 		// リクエストの作成
-		hairStyleType := []HairStyleType{
+		hairStyleType := HairStyleTypesJson{[]HairStyleType{
 			{
 				Style: "short",
 			},
 			{
 				Style: "long",
 			},
-		}
+		}}
 		b, err := json.Marshal(hairStyleType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/hairstyle_type/create", bytes.NewBuffer(b))
@@ -59,12 +59,12 @@ func TestCreateHairStyleTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairStyleTypes []HairStyleType
-		err = json.Unmarshal(w.Body.Bytes(), &hairStyleTypes)
+		var hairStyleTypesJson HairStyleTypesJson
+		err = json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(hairStyleTypes))
-		assert.Equal(t, "short", hairStyleTypes[0].Style)
-		assert.Equal(t, "long", hairStyleTypes[1].Style)
+		assert.Equal(t, 2, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
@@ -109,12 +109,12 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairStyleTypes []HairStyleType
-		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypes)
+		var hairStyleTypesJson HairStyleTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(hairStyleTypes))
-		assert.Equal(t, "short", hairStyleTypes[0].Style)
-		assert.Equal(t, "long", hairStyleTypes[1].Style)
+		assert.Equal(t, 2, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
 
 	t.Run("hairstyle_type1件取得", func(t *testing.T) {
@@ -128,11 +128,11 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairStyleType []HairStyleType
-		err := json.Unmarshal(w.Body.Bytes(), &hairStyleType)
+		var hairStyleTypesJson HairStyleTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, len(hairStyleType))
-		assert.Equal(t, "short", hairStyleType[0].Style)
+		assert.Equal(t, 1, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
 	})
 
 	t.Run("hairstyle_type2件取得", func(t *testing.T) {
@@ -146,12 +146,12 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairStyleTypes []HairStyleType
-		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypes)
+		var hairStyleTypesJson HairStyleTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(hairStyleTypes))
-		assert.Equal(t, "short", hairStyleTypes[0].Style)
-		assert.Equal(t, "long", hairStyleTypes[1].Style)
+		assert.Equal(t, 2, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
 
 	// ロールバック
@@ -188,7 +188,7 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 	)
 	t.Run("hairstyle_type更新", func(t *testing.T) {
 		// リクエストの作成
-		updateHairStyleType := []HairStyleType{
+		updateHairStyleType := HairStyleTypesJson{[]HairStyleType{
 			{
 				ID:    f.HairStyleTypes[0].ID,
 				Style: "short",
@@ -197,7 +197,7 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 				ID:    f.HairStyleTypes[1].ID,
 				Style: "long",
 			},
-		}
+		}}
 		b, err := json.Marshal(updateHairStyleType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut, "/api/hairstyle_type/update", bytes.NewBuffer(b))
@@ -209,12 +209,12 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var hairStyleTypes []HairStyleType
-		err = json.Unmarshal(w.Body.Bytes(), &hairStyleTypes)
+		var hairStyleTypesJson HairStyleTypesJson
+		err = json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(hairStyleTypes))
-		assert.Equal(t, "short", hairStyleTypes[0].Style)
-		assert.Equal(t, "long", hairStyleTypes[1].Style)
+		assert.Equal(t, 2, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)

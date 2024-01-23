@@ -11,7 +11,6 @@ type HairStyleType struct {
 
 func (h *HairStyleType) Validate() error {
 	return validation.ValidateStruct(h,
-		validation.Field(&h.ID, validation.Required),
 		validation.Field(&h.Style, validation.Required),
 	)
 }
