@@ -34,14 +34,14 @@ func TestCreateTagHandler(t *testing.T) {
 		tx, err := indexDB.BeginTxx(ctx, nil)
 		assert.NoError(t, err)
 		// テストデータの準備
-		tag := []Tag{
+		tag := TagsJson{[]Tag{
 			{
 				Name: "テストタグ1",
 			},
 			{
 				Name: "テストタグ2",
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -61,12 +61,11 @@ func TestCreateTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var tags []Tag
+		var tags TagsJson
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, tag[0].Name, tags[0].Name)
-		assert.Equal(t, tag[1].Name, tags[1].Name)
+		assert.Equal(t, tag, tags)
 	})
 }
 
@@ -130,12 +129,12 @@ func TestReadTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var tags []Tag
+		var tags TagsJson
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, f.Tags[0].Name, tags[0].Name)
-		assert.Equal(t, f.Tags[1].Name, tags[1].Name)
+		assert.Equal(t, f.Tags[0].Name, tags.Tags[0].Name)
+		assert.Equal(t, f.Tags[1].Name, tags.Tags[1].Name)
 	})
 
 	t.Run("tag1件取得", func(t *testing.T) {
@@ -156,11 +155,11 @@ func TestReadTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var actuals []Tag
+		var actuals TagsJson
 		err = json.NewDecoder(w.Body).Decode(&actuals)
 		assert.NoError(t, err)
 
-		assert.Equal(t, f.Tags[0].Name, actuals[0].Name)
+		assert.Equal(t, f.Tags[0].Name, actuals.Tags[0].Name)
 	})
 
 	t.Run("tag2件取得", func(t *testing.T) {
@@ -181,12 +180,12 @@ func TestReadTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var tags []Tag
+		var tags TagsJson
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, f.Tags[0].Name, tags[0].Name)
-		assert.Equal(t, f.Tags[1].Name, tags[1].Name)
+		assert.Equal(t, f.Tags[0].Name, tags.Tags[0].Name)
+		assert.Equal(t, f.Tags[1].Name, tags.Tags[1].Name)
 	})
 
 	// ロールバック
@@ -236,14 +235,14 @@ func TestUpdateTagHandler(t *testing.T) {
 		}),
 	)
 	t.Run("tag更新", func(t *testing.T) {
-		updateTag := []Tag{
+		updateTag := TagsJson{[]Tag{
 			{
 				Name: "テストタグ3",
 			},
 			{
 				Name: "テストタグ4",
 			},
-		}
+		}}
 
 		var indexService = service.NewIndexService(
 			tx,
@@ -263,12 +262,11 @@ func TestUpdateTagHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var tags []Tag
+		var tags TagsJson
 		err = json.NewDecoder(w.Body).Decode(&tags)
 		assert.NoError(t, err)
 
-		assert.Equal(t, updateTag[0].Name, tags[0].Name)
-		assert.Equal(t, updateTag[1].Name, tags[1].Name)
+		assert.Equal(t, updateTag, tags)
 	})
 }
 

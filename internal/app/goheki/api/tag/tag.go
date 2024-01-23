@@ -76,7 +76,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var tags []Tag
+	var tagsJson TagsJson
 	query := `
 		SELECT
 			id,
@@ -95,12 +95,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				tag
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &tags, query)
+		err := h.svc.DB.SelectContext(r.Context(), &tagsJson.Tags, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&tags)
+		err = json.NewEncoder(w).Encode(&tagsJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -116,12 +116,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &tags, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &tagsJson.Tags, query, queryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&tags)
+		err = json.NewEncoder(w).Encode(&tagsJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -134,12 +134,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &tags, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &tagsJson.Tags, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(tags)
+	err = json.NewEncoder(w).Encode(&tagsJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
