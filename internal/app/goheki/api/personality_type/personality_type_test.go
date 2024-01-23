@@ -40,14 +40,14 @@ func TestCreatePersonalityTypeHandler(t *testing.T) {
 	)
 	t.Run("personality_type登録", func(t *testing.T) {
 		// リクエストの作成
-		personalityType := []PersonalityType{
+		personalityType := PersonalityTypesJson{[]PersonalityType{
 			{
 				Type: "INTJ",
 			},
 			{
 				Type: "INTP",
 			},
-		}
+		}}
 		b, err := json.Marshal(personalityType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/personality_type/create", bytes.NewBuffer(b))
@@ -59,7 +59,7 @@ func TestCreatePersonalityTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスのデコード
-		var res []PersonalityType
+		var res PersonalityTypesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		// レスポンスの検証
@@ -109,13 +109,13 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスのデコード
-		var res []PersonalityType
+		var res PersonalityTypesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		// レスポンスの検証
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "大和撫子", res[0].Type)
-		assert.Equal(t, "天然", res[1].Type)
+		assert.Equal(t, 2, len(res.PersonalityTypes))
+		assert.Equal(t, "大和撫子", res.PersonalityTypes[0].Type)
+		assert.Equal(t, "天然", res.PersonalityTypes[1].Type)
 	})
 
 	t.Run("personality_type1件取得", func(t *testing.T) {
@@ -129,12 +129,12 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスのデコード
-		var res []PersonalityType
+		var res PersonalityTypesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		// レスポンスの検証
-		assert.Equal(t, 1, len(res))
-		assert.Equal(t, "大和撫子", res[0].Type)
+		assert.Equal(t, 1, len(res.PersonalityTypes))
+		assert.Equal(t, "大和撫子", res.PersonalityTypes[0].Type)
 	})
 
 	t.Run("personality_type2件取得", func(t *testing.T) {
@@ -148,13 +148,13 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスのデコード
-		var res []PersonalityType
+		var res PersonalityTypesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		// レスポンスの検証
-		assert.Equal(t, 2, len(res))
-		assert.Equal(t, "大和撫子", res[0].Type)
-		assert.Equal(t, "天然", res[1].Type)
+		assert.Equal(t, 2, len(res.PersonalityTypes))
+		assert.Equal(t, "大和撫子", res.PersonalityTypes[0].Type)
+		assert.Equal(t, "天然", res.PersonalityTypes[1].Type)
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)
@@ -191,7 +191,7 @@ func TestUpdatePersonalityTypeHandler(t *testing.T) {
 	)
 	t.Run("personality_type更新", func(t *testing.T) {
 		// リクエストの作成
-		updatePersonalityType := []PersonalityType{
+		updatePersonalityType := PersonalityTypesJson{[]PersonalityType{
 			{
 				ID:   f.PersonalityTypes[0].ID,
 				Type: "クール",
@@ -200,7 +200,7 @@ func TestUpdatePersonalityTypeHandler(t *testing.T) {
 				ID:   f.PersonalityTypes[1].ID,
 				Type: "ミステリアス",
 			},
-		}
+		}}
 		b, err := json.Marshal(updatePersonalityType)
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPut,"/api/personality_type/update", bytes.NewBuffer(b))
@@ -212,7 +212,7 @@ func TestUpdatePersonalityTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスのデコード
-		var res []PersonalityType
+		var res PersonalityTypesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		// レスポンスの検証

@@ -70,7 +70,7 @@ func TestCreatePersonalityHandler(t *testing.T) {
 		env,
 	)
 	t.Run("personality追加", func(t *testing.T) {
-		personalitys := []Personality{
+		personalitys := PersonalitiesJson{[]Personality{
 			{
 				EntryID: f.Entrys[0].ID,
 				TypeID:  f.PersonalityTypes[0].ID,
@@ -79,7 +79,7 @@ func TestCreatePersonalityHandler(t *testing.T) {
 				EntryID: f.Entrys[1].ID,
 				TypeID:  f.PersonalityTypes[1].ID,
 			},
-		}
+		}}
 		// テストの実行
 		h := NewCreateHandler(indexService)
 		pJson, err := json.Marshal(personalitys)
@@ -95,7 +95,7 @@ func TestCreatePersonalityHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
-		var res []Personality
+		var res PersonalitiesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, personalitys, res)
@@ -167,13 +167,13 @@ func TestReadPersonalityHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
-		var res []Personality
+		var res PersonalitiesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].EntryID, res[0].EntryID)
-		assert.Equal(t, f.Personalities[1].EntryID, res[1].EntryID)
-		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
-		assert.Equal(t, f.Personalities[1].TypeID, res[1].TypeID)
+		assert.Equal(t, f.Personalities[0].EntryID, res.Personalities[0].EntryID)
+		assert.Equal(t, f.Personalities[1].EntryID, res.Personalities[1].EntryID)
+		assert.Equal(t, f.Personalities[0].TypeID, res.Personalities[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, res.Personalities[1].TypeID)
 	})
 
 	t.Run("personality1件取得", func(t *testing.T) {
@@ -190,10 +190,10 @@ func TestReadPersonalityHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
-		var res []Personality
+		var res PersonalitiesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
+		assert.Equal(t, f.Personalities[0].TypeID, res.Personalities[0].TypeID)
 	})
 
 	t.Run("personality2件取得", func(t *testing.T) {
@@ -210,11 +210,11 @@ func TestReadPersonalityHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
-		var res []Personality
+		var res PersonalitiesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
-		assert.Equal(t, f.Personalities[1].TypeID, res[1].TypeID)
+		assert.Equal(t, f.Personalities[0].TypeID, res.Personalities[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, res.Personalities[1].TypeID)
 	})
 
 	// ロールバック
@@ -273,7 +273,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 		env,
 	)
 	t.Run("personality更新", func(t *testing.T) {
-		personalitys := []Personality{
+		personalitys := PersonalitiesJson{[]Personality{
 			{
 				EntryID: f.Entrys[0].ID,
 				TypeID:  f.PersonalityTypes[1].ID,
@@ -282,7 +282,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 				EntryID: f.Entrys[1].ID,
 				TypeID:  f.PersonalityTypes[0].ID,
 			},
-		}
+		}}
 		// テストの実行
 		h := NewUpdateHandler(indexService)
 		pJson, err := json.Marshal(personalitys)
@@ -298,10 +298,10 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスの確認
-		var res []Personality
+		var res PersonalitiesJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, personalitys[0].TypeID, res[0].TypeID)
+		assert.Equal(t, personalitys.Personalities[0].TypeID, res.Personalities[0].TypeID)
 	})
 }
 

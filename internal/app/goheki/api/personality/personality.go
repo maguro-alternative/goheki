@@ -78,7 +78,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		return
 	}
-	var personalities []Personality
+	var personalitiesJson PersonalitiesJson
 	query := `
 		SELECT
 			entry_id,
@@ -97,12 +97,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				personality
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &personalities, query)
+		err := h.svc.DB.SelectContext(r.Context(), &personalitiesJson.Personalities, query)
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		err = json.NewEncoder(w).Encode(&personalities)
+		err = json.NewEncoder(w).Encode(&personalitiesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -118,12 +118,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				entry_id = $1
 		`
-		err := h.svc.DB.SelectContext(r.Context(), &personalities, query, queryIDs[0])
+		err := h.svc.DB.SelectContext(r.Context(), &personalitiesJson.Personalities, query, queryIDs[0])
 		if err != nil {
 			log.Printf(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		err = json.NewEncoder(w).Encode(&personalities)
+		err = json.NewEncoder(w).Encode(&personalitiesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -136,12 +136,12 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
-	err = h.svc.DB.SelectContext(r.Context(), &personalities, query, args...)
+	err = h.svc.DB.SelectContext(r.Context(), &personalitiesJson.Personalities, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	err = json.NewEncoder(w).Encode(&personalities)
+	err = json.NewEncoder(w).Encode(&personalitiesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
