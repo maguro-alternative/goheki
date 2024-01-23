@@ -25,7 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var sources []Source
+	var sourcesJson SourcesJson
 	query := `
 		INSERT INTO source (
 			name,
@@ -37,17 +37,33 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:type
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&sources)
+	err := json.NewDecoder(r.Body).Decode(&sourcesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, source := range sources {
+	err = sourcesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	for _, source := range sourcesJson.Sources {
+		err = source.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, source)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("insert error: %v", err))
+			log.Printf(fmt.Sprintf("insert error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	json.NewEncoder(w).Encode(sources)
+	err = json.NewEncoder(w).Encode(&sourcesJson)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 type ReadHandler struct {
@@ -89,12 +105,18 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &sources, query)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("select error: %v", err))
+			log.Printf(fmt.Sprintf("select error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		if len(sources) == 0 {
-			log.Fatal("sources is empty")
+			log.Printf("sources is empty")
+			http.Error(w, "sources is empty", http.StatusInternalServerError)
 		}
-		json.NewEncoder(w).Encode(sources)
+		err = json.NewEncoder(w).Encode(&sources)
+		if err != nil {
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	} else if len(entryIDs) == 1 {
 		query = `
@@ -110,24 +132,36 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &sources, query, entryIDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("select error: %v", err))
+			log.Printf(fmt.Sprintf("select error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		if len(sources) == 0 {
-			log.Fatal("sources is empty ", entryIDs[0])
+			log.Printf("sources is empty")
+			http.Error(w, "sources is empty", http.StatusInternalServerError)
 		}
-		json.NewEncoder(w).Encode(sources)
+		err = json.NewEncoder(w).Encode(&sources)
+		if err != nil {
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 	query, args, err := db.In(query, entryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), entryIDs)
+		log.Printf(fmt.Sprintf("in error: %v", err), entryIDs)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(entryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &sources, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("select error: %v", err))
+		log.Printf(fmt.Sprintf("select error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	json.NewEncoder(w).Encode(sources)
+	err = json.NewEncoder(w).Encode(&sources)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 type UpdateHandler struct {
@@ -144,7 +178,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var sources []Source
+	var sourcesJson SourcesJson
 	query := `
 		UPDATE
 			source
@@ -155,17 +189,33 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&sources)
+	err := json.NewDecoder(r.Body).Decode(&sourcesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, source := range sources {
+	err = sourcesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	for _, source := range sourcesJson.Sources {
+		err = source.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, source)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("update error: %v", err))
+			log.Printf(fmt.Sprintf("update error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	json.NewEncoder(w).Encode(sources)
+	err = json.NewEncoder(w).Encode(&sourcesJson)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 type DeleteHandler struct {
@@ -191,7 +241,13 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	if len(delIDs.IDs) == 0 {
 		return
@@ -204,19 +260,30 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("delete error: %v", err))
+			log.Printf(fmt.Sprintf("delete error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		json.NewEncoder(w).Encode(&delIDs)
+		err = json.NewEncoder(w).Encode(&delIDs)
+		if err != nil {
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in error: %v", err), delIDs.IDs)
+		log.Printf(fmt.Sprintf("in error: %v", err), delIDs.IDs)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("delete error: %v", err))
+		log.Printf(fmt.Sprintf("delete error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	json.NewEncoder(w).Encode(&delIDs)
+	err = json.NewEncoder(w).Encode(&delIDs)
+	if err != nil {
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

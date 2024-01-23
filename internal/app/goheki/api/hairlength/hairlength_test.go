@@ -68,12 +68,12 @@ func TestCreateHairLengthHandler(t *testing.T) {
 	// テストデータの準備
 	heirLengths := []HairLength{
 		{
-			EntryID:          *f.Entrys[0].ID,
-			HairLengthTypeID: *f.HairLengthTypes[0].ID,
+			EntryID:          f.Entrys[0].ID,
+			HairLengthTypeID: f.HairLengthTypes[0].ID,
 		},
 		{
-			EntryID:          *f.Entrys[1].ID,
-			HairLengthTypeID: *f.HairLengthTypes[1].ID,
+			EntryID:          f.Entrys[1].ID,
+			HairLengthTypeID: f.HairLengthTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -132,7 +132,7 @@ func TestReadHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
+			s.HairLengthTypeID = f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -144,19 +144,19 @@ func TestReadHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
+			s.HairLengthTypeID = f.HairLengthTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	heirLengths := []HairLength{
 		{
-			EntryID:          *f.Entrys[0].ID,
-			HairLengthTypeID: *f.HairLengthTypes[0].ID,
+			EntryID:          f.Entrys[0].ID,
+			HairLengthTypeID: f.HairLengthTypes[0].ID,
 		},
 		{
-			EntryID:          *f.Entrys[1].ID,
-			HairLengthTypeID: *f.HairLengthTypes[1].ID,
+			EntryID:          f.Entrys[1].ID,
+			HairLengthTypeID: f.HairLengthTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -182,7 +182,7 @@ func TestReadHairLengthHandler(t *testing.T) {
 
 	t.Run("hairlength1件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d", f.Entrys[0].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -198,7 +198,7 @@ func TestReadHairLengthHandler(t *testing.T) {
 
 	t.Run("hairlength2件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d&entry_id=%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -248,7 +248,7 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
+			s.HairLengthTypeID = f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -260,19 +260,19 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
+			s.HairLengthTypeID = f.HairLengthTypes[1].ID
 		}))),
 	)
 
 	// テストデータの準備
 	updateHeirLengths := []HairLength{
 		{
-			EntryID:          *f.Entrys[0].ID,
-			HairLengthTypeID: *f.HairLengthTypes[1].ID,
+			EntryID:          f.Entrys[0].ID,
+			HairLengthTypeID: f.HairLengthTypes[1].ID,
 		},
 		{
-			EntryID:          *f.Entrys[1].ID,
-			HairLengthTypeID: *f.HairLengthTypes[0].ID,
+			EntryID:          f.Entrys[1].ID,
+			HairLengthTypeID: f.HairLengthTypes[0].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -331,7 +331,7 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 			s.Content = "かわいい"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[0].ID
+			s.HairLengthTypeID = f.HairLengthTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "アイドルマスター"
@@ -343,7 +343,7 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 			s.Content = "お姫ちん"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewHairLength(ctx, func(s *fixtures.HairLength) {
-			s.HairLengthTypeID = *f.HairLengthTypes[1].ID
+			s.HairLengthTypeID = f.HairLengthTypes[1].ID
 		}))),
 	)
 
@@ -355,7 +355,7 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 	)
 	t.Run("hairlength削除", func(t *testing.T) {
 		h := NewDeleteHandler(indexService)
-		body, err := json.Marshal(IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}})
+		body, err := json.Marshal(IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}})
 		assert.NoError(t, err)
 		req := httptest.NewRequest(http.MethodDelete, "/api/hairlength/delete", bytes.NewBuffer(body))
 
@@ -368,6 +368,6 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 		var res IDs
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}, res.IDs)
+		assert.Equal(t, []int64{f.Entrys[0].ID, f.Entrys[1].ID}, res.IDs)
 	})
 }

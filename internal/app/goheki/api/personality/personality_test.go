@@ -133,7 +133,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[0].ID
+			s.TypeID = f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -145,7 +145,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[1].ID
+			s.TypeID = f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
@@ -170,10 +170,10 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].EntryID, *res[0].EntryID)
-		assert.Equal(t, f.Personalities[1].EntryID, *res[1].EntryID)
-		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
-		assert.Equal(t, f.Personalities[1].TypeID, *res[1].TypeID)
+		assert.Equal(t, f.Personalities[0].EntryID, res[0].EntryID)
+		assert.Equal(t, f.Personalities[1].EntryID, res[1].EntryID)
+		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, res[1].TypeID)
 	})
 
 	t.Run("personality1件取得", func(t *testing.T) {
@@ -193,7 +193,7 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
+		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
 	})
 
 	t.Run("personality2件取得", func(t *testing.T) {
@@ -213,8 +213,8 @@ func TestReadPersonalityHandler(t *testing.T) {
 		var res []Personality
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
-		assert.Equal(t, f.Personalities[0].TypeID, *res[0].TypeID)
-		assert.Equal(t, f.Personalities[1].TypeID, *res[1].TypeID)
+		assert.Equal(t, f.Personalities[0].TypeID, res[0].TypeID)
+		assert.Equal(t, f.Personalities[1].TypeID, res[1].TypeID)
 	})
 
 	// ロールバック
@@ -252,7 +252,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[0].ID
+			s.TypeID = f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -264,7 +264,7 @@ func TestUpdatePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[1].ID
+			s.TypeID = f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(
@@ -336,7 +336,7 @@ func TestDeletePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容1"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[0].ID
+			s.TypeID = f.PersonalityTypes[0].ID
 		}))),
 		fixtures.NewSource(ctx, func(s *fixtures.Source) {
 			s.Name = "テストソース2"
@@ -348,7 +348,7 @@ func TestDeletePersonalityHandler(t *testing.T) {
 			s.Content = "テスト内容2"
 			s.CreatedAt = fixedTime
 		}).Connect(fixtures.NewPersonality(ctx, func(s *fixtures.Personality) {
-			s.TypeID = *f.PersonalityTypes[1].ID
+			s.TypeID = f.PersonalityTypes[1].ID
 		}))),
 	)
 	var indexService = service.NewIndexService(

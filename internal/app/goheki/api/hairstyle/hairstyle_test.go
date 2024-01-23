@@ -68,12 +68,12 @@ func TestCreateHairStyleHandler(t *testing.T) {
 	// テストデータの準備
 	hairStyles := []HairStyle{
 		{
-			EntryID: *f.Entrys[0].ID,
-			StyleID: *f.HairStyleTypes[0].ID,
+			EntryID: f.Entrys[0].ID,
+			StyleID: f.HairStyleTypes[0].ID,
 		},
 		{
-			EntryID: *f.Entrys[1].ID,
-			StyleID: *f.HairStyleTypes[1].ID,
+			EntryID: f.Entrys[1].ID,
+			StyleID: f.HairStyleTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -150,12 +150,12 @@ func TestReadHairStyleHandler(t *testing.T) {
 	// テストデータの準備
 	hairStyles := []HairStyle{
 		{
-			EntryID: *f.Entrys[0].ID,
-			StyleID: *f.HairStyleTypes[0].ID,
+			EntryID: f.Entrys[0].ID,
+			StyleID: f.HairStyleTypes[0].ID,
 		},
 		{
-			EntryID: *f.Entrys[1].ID,
-			StyleID: *f.HairStyleTypes[1].ID,
+			EntryID: f.Entrys[1].ID,
+			StyleID: f.HairStyleTypes[1].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -181,7 +181,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 	t.Run("hairstyle1件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d", f.Entrys[0].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -197,7 +197,7 @@ func TestReadHairStyleHandler(t *testing.T) {
 
 	t.Run("hairstyle2件取得", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d&entry_id=%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyles/read?entry_id=%d&entry_id=%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -266,12 +266,12 @@ func TestUpdateHairStyleHandler(t *testing.T) {
 	// テストデータの準備
 	updateHairStyles := []HairStyle{
 		{
-			EntryID: *f.Entrys[0].ID,
-			StyleID: *f.HairStyleTypes[1].ID,
+			EntryID: f.Entrys[0].ID,
+			StyleID: f.HairStyleTypes[1].ID,
 		},
 		{
-			EntryID: *f.Entrys[1].ID,
-			StyleID: *f.HairStyleTypes[0].ID,
+			EntryID: f.Entrys[1].ID,
+			StyleID: f.HairStyleTypes[0].ID,
 		},
 	}
 	var indexService = service.NewIndexService(
@@ -351,7 +351,7 @@ func TestDeleteHairStyleHandler(t *testing.T) {
 	)
 
 	t.Run("hairstyle削除", func(t *testing.T) {
-		delIDs := IDs{IDs: []int64{*f.Entrys[0].ID, *f.Entrys[1].ID}}
+		delIDs := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
 		h := NewDeleteHandler(indexService)
 		body, err := json.Marshal(delIDs)
 		assert.NoError(t, err)

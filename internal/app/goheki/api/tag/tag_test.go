@@ -146,7 +146,7 @@ func TestReadTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d",*f.Tags[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d",f.Tags[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -171,7 +171,7 @@ func TestReadTagHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d&id=%d", *f.Tags[0].ID, *f.Tags[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/tag/read?id=%d&id=%d", f.Tags[0].ID, f.Tags[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -315,7 +315,7 @@ func TestDeleteTagHandler(t *testing.T) {
 		}),
 	)
 	t.Run("tag削除", func(t *testing.T) {
-		delIDs := IDs{IDs: []int64{*f.Tags[0].ID, *f.Tags[1].ID}}
+		delIDs := IDs{IDs: []int64{f.Tags[0].ID, f.Tags[1].ID}}
 
 		var indexService = service.NewIndexService(
 			tx,

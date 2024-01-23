@@ -24,7 +24,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var hekiRadarChart []HekiRadarChart
+	var HekiRadarChartsJson HekiRadarChartsJson
 	query := `
 		INSERT INTO heki_radar_chart (
 			entry_id,
@@ -36,21 +36,33 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:nu
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&hekiRadarChart)
+	err := json.NewDecoder(r.Body).Decode(&HekiRadarChartsJson)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	for _, hrc := range hekiRadarChart {
-		_, err := h.svc.DB.NamedExecContext(r.Context(), query, hrc)
+	err = HekiRadarChartsJson.Validate()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	for _, hrc := range HekiRadarChartsJson.HekiRadarCharts {
+		err = hrc.Validate()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hrc)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&hekiRadarChart)
+	err = json.NewEncoder(w).Encode(&HekiRadarChartsJson)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -167,7 +179,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var hekiRadarChart []HekiRadarChart
+	var hekiRadarChartsJson HekiRadarChartsJson
 	query := `
 		UPDATE
 			heki_radar_chart
@@ -177,13 +189,25 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id = :entry_id
 	`
-	err := json.NewDecoder(r.Body).Decode(&hekiRadarChart)
+	err := json.NewDecoder(r.Body).Decode(&hekiRadarChartsJson)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	for _, hrc := range hekiRadarChart {
+	err = hekiRadarChartsJson.Validate()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	for _, hrc := range hekiRadarChartsJson.HekiRadarCharts {
+		err = hrc.Validate()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		_, err := h.svc.DB.NamedExecContext(r.Context(), query, hrc)
 		if err != nil {
 			log.Println(err)
@@ -191,7 +215,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&hekiRadarChart)
+	err = json.NewEncoder(w).Encode(&hekiRadarChartsJson)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -221,6 +245,12 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			entry_id IN (?)
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = delIDs.Validate()
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

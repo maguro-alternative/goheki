@@ -25,7 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var hairStyleTypes []HairStyleType
+	var hairStyleTypesJson HairStyleTypesJson
 	query := `
 		INSERT INTO hairstyle_type (
 			style
@@ -33,21 +33,36 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:style
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&hairStyleTypes)
+	err := json.NewDecoder(r.Body).Decode(&hairStyleTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, hairStyleType := range hairStyleTypes {
+	err = hairStyleTypesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	for _, hairStyleType := range hairStyleTypesJson.HairStyleTypes {
+		err = hairStyleType.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("json validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hairStyleType)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&hairStyleTypes)
+	err = json.NewEncoder(w).Encode(&hairStyleTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -87,12 +102,14 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &hairStyleTypes, query)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = json.NewEncoder(w).Encode(&hairStyleTypes)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
@@ -108,30 +125,35 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &hairStyleTypes, query, queryIDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = json.NewEncoder(w).Encode(&hairStyleTypes)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(queryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &hairStyleTypes, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(&hairStyleTypes)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -150,7 +172,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var hairStyleTypes []HairStyleType
+	var hairStyleTypesJson HairStyleTypesJson
 	query := `
 		UPDATE
 			hairstyle_type
@@ -159,21 +181,36 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
-	err := json.NewDecoder(r.Body).Decode(&hairStyleTypes)
+	err := json.NewDecoder(r.Body).Decode(&hairStyleTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, hairStyleType := range hairStyleTypes {
+	err = hairStyleTypesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	for _, hairStyleType := range hairStyleTypesJson.HairStyleTypes {
+		err = hairStyleType.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("json validate error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hairStyleType)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-	err = json.NewEncoder(w).Encode(&hairStyleTypes)
+	err = json.NewEncoder(w).Encode(&hairStyleTypesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -201,7 +238,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("json validate error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if len(delIDs.IDs) == 0 {
@@ -215,25 +259,29 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("db error: %v", err))
+			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("db error: %v", err))
+		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

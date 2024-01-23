@@ -25,7 +25,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
-	var personalities []Personality
+	var personalitiesJson PersonalitiesJson
 	query := `
 		INSERT INTO personality (
 			entry_id,
@@ -35,19 +35,32 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:type_id
 		)
 	`
-	err := json.NewDecoder(r.Body).Decode(&personalities)
+	err := json.NewDecoder(r.Body).Decode(&personalitiesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, personality := range personalities {
+	err = personalitiesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	for _, personality := range personalitiesJson.Personalities {
+		err = personality.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, personality)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("insert error: %v", err))
+			log.Printf(fmt.Sprintf("insert error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&personalities)
+	err = json.NewEncoder(w).Encode(&personalitiesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -86,11 +99,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &personalities, query)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("select error: %v", err))
+			log.Printf(fmt.Sprintf("select error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		err = json.NewEncoder(w).Encode(&personalities)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		return
 	} else if len(queryIDs) == 1 {
@@ -105,26 +120,31 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		err := h.svc.DB.SelectContext(r.Context(), &personalities, query, queryIDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("select error: %v", err))
+			log.Printf(fmt.Sprintf("select error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		err = json.NewEncoder(w).Encode(&personalities)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in query error: %v", err))
+		log.Printf(fmt.Sprintf("in query error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(queryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &personalities, query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("select error: %v", err))
+		log.Printf(fmt.Sprintf("select error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	err = json.NewEncoder(w).Encode(&personalities)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -142,7 +162,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		return
 	}
-	var personalities []Personality
+	var personalitiesJson PersonalitiesJson
 	query := `
 		UPDATE
 			personality
@@ -151,19 +171,32 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			entry_id = :entry_id
 	`
-	err := json.NewDecoder(r.Body).Decode(&personalities)
+	err := json.NewDecoder(r.Body).Decode(&personalitiesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	for _, personality := range personalities {
+	err = personalitiesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	for _, personality := range personalitiesJson.Personalities {
+		err = personality.Validate()
+		if err != nil {
+			log.Printf(fmt.Sprintf("validation error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, personality)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("update error: %v", err))
+			log.Printf(fmt.Sprintf("update error: %v", err))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
-	err = json.NewEncoder(w).Encode(&personalities)
+	err = json.NewEncoder(w).Encode(&personalitiesJson)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -190,7 +223,13 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	`
 	err := json.NewDecoder(r.Body).Decode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = delIDs.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	if len(delIDs.IDs) == 0 {
 		return
@@ -203,25 +242,30 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		`
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
-			log.Fatal(fmt.Sprintf("delete error: %v", err))
+			log.Printf(fmt.Sprintf("delete error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		err = json.NewEncoder(w).Encode(&delIDs)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("json encode error: %v", err))
+			log.Printf(fmt.Sprintf("json encode error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("in query error: %v", err))
+		log.Printf(fmt.Sprintf("in query error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("delete error: %v", err))
+		log.Printf(fmt.Sprintf("delete error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("json encode error: %v", err))
+		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

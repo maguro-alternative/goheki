@@ -209,7 +209,7 @@ func TestReadLinkHandler(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
 		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d", *f.Links[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d", f.Links[0].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスを作成
 		w := httptest.NewRecorder()
@@ -231,7 +231,7 @@ func TestReadLinkHandler(t *testing.T) {
 		// テストの実行
 		h := NewReadHandler(indexService)
 		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d&id=%d", *f.Links[0].ID, *f.Links[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/link/read?id=%d&id=%d", f.Links[0].ID, f.Links[1].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスを作成
 		w := httptest.NewRecorder()
@@ -398,7 +398,7 @@ func TestDeleteLinkHandler(t *testing.T) {
 		}))),
 	)
 
-	delIDs := IDs{IDs:[]int64{*f.Links[0].ID, *f.Links[1].ID,}}
+	delIDs := IDs{IDs:[]int64{f.Links[0].ID, f.Links[1].ID,}}
 
 	var indexService = service.NewIndexService(
 		tx,

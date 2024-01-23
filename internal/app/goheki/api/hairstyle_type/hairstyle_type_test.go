@@ -119,7 +119,7 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 
 	t.Run("hairstyle_type1件取得", func(t *testing.T) {
 		// リクエストの作成
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d", *f.HairStyleTypes[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d", f.HairStyleTypes[0].ID), nil)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
 		// テスト対象のハンドラを実行
@@ -137,7 +137,7 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 
 	t.Run("hairstyle_type2件取得", func(t *testing.T) {
 		// リクエストの作成
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d&id=%d", *f.HairStyleTypes[0].ID, *f.HairStyleTypes[1].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d&id=%d", f.HairStyleTypes[0].ID, f.HairStyleTypes[1].ID), nil)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
 		// テスト対象のハンドラを実行
@@ -251,7 +251,7 @@ func TestDeleteHairStyleTypeHandler(t *testing.T) {
 	t.Run("hairstyle_type削除", func(t *testing.T) {
 		// リクエストの作成
 		delIDs := IDs{
-			IDs: []int64{*f.HairStyleTypes[0].ID, *f.HairStyleTypes[1].ID},
+			IDs: []int64{f.HairStyleTypes[0].ID, f.HairStyleTypes[1].ID},
 		}
 		b, err := json.Marshal(delIDs)
 		assert.NoError(t, err)
@@ -268,8 +268,8 @@ func TestDeleteHairStyleTypeHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(res.IDs))
-		assert.Equal(t, *f.HairStyleTypes[0].ID, res.IDs[0])
-		assert.Equal(t, *f.HairStyleTypes[1].ID, res.IDs[1])
+		assert.Equal(t, f.HairStyleTypes[0].ID, res.IDs[0])
+		assert.Equal(t, f.HairStyleTypes[1].ID, res.IDs[1])
 	})
 	// ロールバック
 	tx.RollbackCtx(ctx)

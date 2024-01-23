@@ -120,7 +120,7 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 
 	t.Run("personality_type1件取得", func(t *testing.T) {
 		// リクエストの作成
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality_type/read?id=%d", *f.PersonalityTypes[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality_type/read?id=%d", f.PersonalityTypes[0].ID), nil)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
 		// テスト対象のハンドラを実行
@@ -139,7 +139,7 @@ func TestReadPersonalityTypeHandler(t *testing.T) {
 
 	t.Run("personality_type2件取得", func(t *testing.T) {
 		// リクエストの作成
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality_type/read?id=%d&id=%d", *f.PersonalityTypes[0].ID, *f.PersonalityTypes[1].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/personality_type/read?id=%d&id=%d", f.PersonalityTypes[0].ID, f.PersonalityTypes[1].ID), nil)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
 		// テスト対象のハンドラを実行
@@ -254,7 +254,7 @@ func TestDeletePersonalityTypeHandler(t *testing.T) {
 	t.Run("personality_type削除", func(t *testing.T) {
 		// リクエストの作成
 		delIDs := IDs{
-			IDs: []int64{*f.PersonalityTypes[0].ID, *f.PersonalityTypes[1].ID},
+			IDs: []int64{f.PersonalityTypes[0].ID, f.PersonalityTypes[1].ID},
 		}
 		b, err := json.Marshal(delIDs)
 		assert.NoError(t, err)

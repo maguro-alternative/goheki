@@ -202,7 +202,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d", *f.Sources[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d", f.Sources[0].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -267,7 +267,7 @@ func TestReadSourceHandler(t *testing.T) {
 		)
 		// テストの実行
 		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d&id=%d", *f.Sources[0].ID, *f.Sources[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/source/read?id=%d&id=%d", f.Sources[0].ID, f.Sources[1].ID), nil)
 		assert.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -389,7 +389,7 @@ func TestDeleteSourceHandler(t *testing.T) {
 		// テストの実行
 		h := NewDeleteHandler(indexService)
 		eJson, err := json.Marshal(&IDs{
-			IDs: []int64{*f.Sources[0].ID},
+			IDs: []int64{f.Sources[0].ID},
 		})
 		req, err := http.NewRequest(http.MethodDelete, "/api/source/delete", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
@@ -405,6 +405,6 @@ func TestDeleteSourceHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &actual)
 		assert.NoError(t, err)
 
-		assert.Equal(t, *f.Sources[0].ID, actual.IDs[0])
+		assert.Equal(t, f.Sources[0].ID, actual.IDs[0])
 	})
 }

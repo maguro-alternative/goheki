@@ -185,7 +185,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 
 	t.Run("heki_rader_chart1件取得", func(t *testing.T) {
 		// リクエストの作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d", *f.Entrys[0].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d", f.Entrys[0].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
@@ -203,7 +203,7 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 
 	t.Run("heki_rader_chart2件取得", func(t *testing.T) {
 		// リクエストの作成
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry=%d&entry_id%d", *f.Entrys[0].ID, *f.Entrys[1].ID), nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry=%d&entry_id%d", f.Entrys[0].ID, f.Entrys[1].ID), nil)
 		assert.NoError(t, err)
 		// レスポンスの作成
 		w := httptest.NewRecorder()
@@ -362,8 +362,8 @@ func TestDeleteHekiRadarChartHandler(t *testing.T) {
 		env,
 	)
 	t.Run("heki_rader_chart削除", func(t *testing.T) {
-		deleteIDs.IDs = append(deleteIDs.IDs, *f.Entrys[0].ID)
-		deleteIDs.IDs = append(deleteIDs.IDs, *f.Entrys[1].ID)
+		deleteIDs.IDs = append(deleteIDs.IDs, f.Entrys[0].ID)
+		deleteIDs.IDs = append(deleteIDs.IDs, f.Entrys[1].ID)
 		// リクエストの作成
 		b, err := json.Marshal(deleteIDs)
 		assert.NoError(t, err)
