@@ -6,8 +6,8 @@ import (
 )
 
 type PersonalityType struct {
-	ID      int64 `db:"id"`
-	Type    string `db:"type"`
+	ID   int64  `db:"id"`
+	Type string `db:"type"`
 }
 
 func NewPersonalityType(ctx context.Context, setter ...func(p *PersonalityType)) *ModelConnector {

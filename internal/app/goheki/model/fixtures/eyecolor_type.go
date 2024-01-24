@@ -6,7 +6,7 @@ import (
 )
 
 type EyeColorType struct {
-	ID    int64 `db:"id"`
+	ID    int64  `db:"id"`
 	Color string `db:"color"`
 }
 
