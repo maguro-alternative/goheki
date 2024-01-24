@@ -36,6 +36,9 @@ func TestCreateBEHHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
+
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
@@ -156,9 +159,6 @@ func TestCreateBEHHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestReadBEHHandler(t *testing.T) {
@@ -175,6 +175,9 @@ func TestReadBEHHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -292,9 +295,6 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res.BWHs)
 	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestUpdateBEHHandler(t *testing.T) {
@@ -311,6 +311,9 @@ func TestUpdateBEHHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -403,7 +406,6 @@ func TestUpdateBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, updateBWHsJson.BWHs, actual)
 	})
-	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteBEHHandler(t *testing.T) {
@@ -420,6 +422,9 @@ func TestDeleteBEHHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -492,6 +497,4 @@ func TestDeleteBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
-
-	tx.RollbackCtx(ctx)
 }
