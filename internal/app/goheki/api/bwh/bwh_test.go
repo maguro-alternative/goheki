@@ -98,27 +98,6 @@ func TestCreateBEHHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
-	t.Run("bwh登録", func(t *testing.T) {
-		h := NewCreateHandler(indexService)
-		bJson, err := json.Marshal(&bwhsJson)
-		assert.NoError(t, err)
-		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
-		assert.NoError(t, err)
-
-		w := httptest.NewRecorder()
-		h.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-
-		var res BWHsJson
-		var dbResult []BWH
-		err = json.Unmarshal(w.Body.Bytes(), &res)
-		assert.NoError(t, err)
-		assert.Equal(t, bwhs, res.BWHs)
-		err = tx.SelectContext(ctx, &dbResult, "SELECT * FROM bwh")
-		assert.NoError(t, err)
-		assert.Equal(t, bwhsJson.BWHs, dbResult)
-	})
 
 	t.Run("bwh登録失敗", func(t *testing.T) {
 		h := NewCreateHandler(indexService)
@@ -158,6 +137,28 @@ func TestCreateBEHHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bwh登録", func(t *testing.T) {
+		h := NewCreateHandler(indexService)
+		bJson, err := json.Marshal(&bwhsJson)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/bwh/create", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res BWHsJson
+		var dbResult []BWH
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, bwhs, res.BWHs)
+		err = tx.SelectContext(ctx, &dbResult, "SELECT * FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, bwhsJson.BWHs, dbResult)
 	})
 }
 
