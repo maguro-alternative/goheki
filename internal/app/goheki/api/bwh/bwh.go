@@ -57,7 +57,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = bwhsJson.Validate()
 	if err != nil {
 		log.Println(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	if len(bwhsJson.BWHs) == 0 {
 		log.Println("json unexpected error: empty body")
@@ -67,7 +67,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = bwh.Validate()
 		if err != nil {
 			log.Println(fmt.Sprintf("validation error: %v", err))
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, bwh)
 		if err != nil {

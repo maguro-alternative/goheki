@@ -127,7 +127,7 @@ func TestCreateBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 	})
 
 	t.Run("bwh登録失敗 形式が正しくないjson", func(t *testing.T) {
