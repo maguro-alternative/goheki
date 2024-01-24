@@ -296,6 +296,34 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, bwhs, res.BWHs)
 	})
+
+	t.Run("bwh1件取得(存在しない)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, "/api/bwh/read?entry_id=0", nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+		var res BWHsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Len(t, res.BWHs, 0)
+	})
+
+	t.Run("bwh1件取得(形式が正しくない)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, "/api/bwh/read?entry_id=aaa", nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateBEHHandler(t *testing.T) {
@@ -385,6 +413,48 @@ func TestUpdateBEHHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("bwh更新(形式が正しくない)", func(t *testing.T) {
+		type dummey struct {
+			EntryID int64 `json:"entry_id"`
+			ID      int64 `json:"id"`
+		}
+		type dummeyJson struct {
+			BWHs []dummey `json:"bwhs"`
+		}
+		h := NewUpdateHandler(indexService)
+		bJson, err := json.Marshal(dummeyJson{
+			BWHs: []dummey{
+				{
+					EntryID: 0,
+					ID:      0,
+				},
+			},
+		})
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/bwh/update", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actual []BWH
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, f.BWHs[0].Bust, actual[0].Bust)
+		assert.Equal(t, f.BWHs[0].Waist, actual[0].Waist)
+		assert.Equal(t, f.BWHs[0].Hip, actual[0].Hip)
+		assert.Equal(t, f.BWHs[0].Height, actual[0].Height)
+		assert.Equal(t, f.BWHs[0].Weight, actual[0].Weight)
+		assert.Equal(t, f.BWHs[1].Bust, actual[1].Bust)
+		assert.Equal(t, f.BWHs[1].Waist, actual[1].Waist)
+		assert.Equal(t, f.BWHs[1].Hip, actual[1].Hip)
+		assert.Equal(t, f.BWHs[1].Height, actual[1].Height)
+		assert.Equal(t, f.BWHs[1].Weight, actual[1].Weight)
+	})
+
 	t.Run("bwh更新", func(t *testing.T) {
 		h := NewUpdateHandler(indexService)
 		bJson, err := json.Marshal(updateBWHsJson)
@@ -475,6 +545,38 @@ func TestDeleteBEHHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("bwh削除(形式が正しくない)", func(t *testing.T) {
+		type dummey struct {
+			EntryID int64 `json:"entry_id"`
+			ID      int64 `json:"id"`
+		}
+		type dummeyJson struct {
+			BWHs []dummey `json:"bwhs"`
+		}
+		h := NewDeleteHandler(indexService)
+		bJson, err := json.Marshal(dummeyJson{
+			BWHs: []dummey{
+				{
+					EntryID: 0,
+					ID:      0,
+				},
+			},
+		})
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/bwh/delete", bytes.NewBuffer(bJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, count)
+	})
 
 	t.Run("bwh削除", func(t *testing.T) {
 		delIDs := IDs{IDs: []int64{f.BWHs[0].EntryID}}
