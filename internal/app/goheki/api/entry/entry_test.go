@@ -32,6 +32,9 @@ func TestCreateEntryHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
@@ -47,6 +50,40 @@ func TestCreateEntryHandler(t *testing.T) {
 			s.Type = "game"
 		}),
 	)
+
+	t.Run("entry登録失敗", func(t *testing.T) {
+		entrys := []IDs{
+			{
+				IDs: []int64{1, 2},
+			},
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewCreateHandler(indexService)
+		eJson, err := json.Marshal(&entrys)
+		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		var actuals []Entry
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(actuals))
+	})
+
 	t.Run("entry登録", func(t *testing.T) {
 		entriesJson := EntriesJson{
 			[]Entry{
@@ -105,37 +142,6 @@ func TestCreateEntryHandler(t *testing.T) {
 		assert.Equal(t, entriesJson.Entries[1].Image, actuals[1].Image)
 		assert.Equal(t, entriesJson.Entries[1].Content, actuals[1].Content)
 	})
-
-	t.Run("entry登録失敗", func(t *testing.T) {
-		entrys := []IDs{
-			{
-				IDs: []int64{1, 2},
-			},
-		}
-
-		var indexService = service.NewIndexService(
-			tx,
-			cookie.Store,
-			env,
-		)
-		// テストの実行
-		h := NewCreateHandler(indexService)
-		eJson, err := json.Marshal(&entrys)
-		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
-		assert.NoError(t, err)
-
-		w := httptest.NewRecorder()
-
-		// テストの実行
-		h.ServeHTTP(w, req)
-
-		// 応答の検証
-		res := w.Result()
-		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestReadEntryHandler(t *testing.T) {
@@ -149,6 +155,8 @@ func TestReadEntryHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 
 	// データベースの準備
@@ -304,8 +312,125 @@ func TestReadEntryHandler(t *testing.T) {
 		assert.Equal(t, entrys[1].Content, actual.Entries[1].Content)
 	})
 
-	// ロールバック
-	tx.RollbackCtx(ctx)
+	t.Run("entry0件取得", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, "/api/entry/read?id=0", nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// ロールバック
+		// tx.RollbackCtx(ctx)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		var actual EntriesJson
+		err = json.NewDecoder(res.Body).Decode(&actual)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 0, len(actual.Entries))
+	})
+
+	t.Run("entry存在しないidを含む2件取得", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=%d", f.Entrys[0].ID, 0), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// ロールバック
+		// tx.RollbackCtx(ctx)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		var actual EntriesJson
+		err = json.NewDecoder(res.Body).Decode(&actual)
+		assert.NoError(t, err)
+
+		assert.Equal(t, entrys[0].SourceID, actual.Entries[0].SourceID)
+		assert.Equal(t, entrys[0].Name, actual.Entries[0].Name)
+		assert.Equal(t, entrys[0].Image, actual.Entries[0].Image)
+		assert.Equal(t, entrys[0].Content, actual.Entries[0].Content)
+		assert.Equal(t, 1, len(actual.Entries))
+	})
+
+	t.Run("entry存在しないidを含む1件取得", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d", 0), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// ロールバック
+		// tx.RollbackCtx(ctx)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		var actual EntriesJson
+		err = json.NewDecoder(res.Body).Decode(&actual)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 0, len(actual.Entries))
+	})
+
+	t.Run("entry1件取得(形式が正しくない)", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, "/api/entry/read?id=aaa", nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		h.ServeHTTP(w, req)
+
+		res := w.Result()
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	})
 }
 
 func TestUpdateEntryHandler(t *testing.T) {
@@ -319,6 +444,9 @@ func TestUpdateEntryHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 
 	// データベースの準備
@@ -366,6 +494,40 @@ func TestUpdateEntryHandler(t *testing.T) {
 			},
 		},
 	}
+
+	t.Run("entry更新失敗", func(t *testing.T) {
+		entrys := []IDs{
+			{
+				IDs: []int64{1, 2},
+			},
+		}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewUpdateHandler(indexService)
+		eJson, err := json.Marshal(&entrys)
+		req, err := http.NewRequest(http.MethodPut, "/api/entry/update", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
+
+		var actuals []Entry
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+	})
+
 	t.Run("entry更新", func(t *testing.T) {
 		var indexService = service.NewIndexService(
 			tx,
@@ -406,9 +568,6 @@ func TestUpdateEntryHandler(t *testing.T) {
 		assert.Equal(t, updateEntriesJson.Entries[1].Image, actuals[1].Image)
 		assert.Equal(t, updateEntriesJson.Entries[1].Content, actuals[1].Content)
 	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteEntryHandler(t *testing.T) {
@@ -422,6 +581,8 @@ func TestDeleteEntryHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 
 	// データベースの準備
@@ -448,6 +609,38 @@ func TestDeleteEntryHandler(t *testing.T) {
 			s.CreatedAt = fixedTime
 		})),
 	)
+
+	t.Run("entry削除失敗", func(t *testing.T) {
+		entrys := EntriesJson{}
+
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewDeleteHandler(indexService)
+		eJson, err := json.Marshal(&entrys)
+		req, err := http.NewRequest(http.MethodDelete, "/api/entry/delete", bytes.NewBuffer(eJson))
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// 応答の検証
+		res := w.Result()
+		assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
+
+		var actuals []Entry
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM entry")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+	})
+
 	t.Run("entry削除", func(t *testing.T) {
 		ids := []int64{f.Entrys[0].ID, f.Entrys[1].ID}
 		delIDs := IDs{IDs: ids}
@@ -483,7 +676,4 @@ func TestDeleteEntryHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }

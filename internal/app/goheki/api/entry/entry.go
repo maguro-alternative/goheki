@@ -23,6 +23,7 @@ func NewCreateHandler(svc *service.IndexService) *CreateHandler {
 }
 
 func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// POSTメソッド以外は受け付けない
 	if r.Method != http.MethodPost {
 		return
 	}
@@ -42,6 +43,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			:created_at
 		)
 	`
+	// リクエストボディを読み込む
 	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(fmt.Sprintf("read error: %v", err))
@@ -56,16 +58,18 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println("json unexpected error: empty body")
 		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
 	}
+	// jsonバリデーション
 	err = entriesJson.Validate()
 	if err != nil {
 		log.Println(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	for _, entry := range entriesJson.Entries {
+		// jsonバリデーション
 		err = entry.Validate()
 		if err != nil {
 			log.Println(fmt.Sprintf("validation error: %v", err))
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
@@ -73,6 +77,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
+	// レスポンスボディに書き込む
 	err = json.NewEncoder(w).Encode(&entriesJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -107,7 +112,9 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id IN (?)
 	`
+	// クエリパラメータからidを取得
 	queryIDs, ok := r.URL.Query()["id"]
+	// idが指定されていない場合は全件取得
 	if !ok {
 		query = `
 			SELECT
@@ -119,11 +126,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			FROM
 				entry
 		`
+		// 全件取得
 		err := h.svc.DB.SelectContext(r.Context(), &entriesJson.Entries, query)
 		if err != nil {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		// レスポンスボディに書き込む
 		err = json.NewEncoder(w).Encode(&entriesJson)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -143,11 +152,13 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
+		// 1件取得
 		err := h.svc.DB.SelectContext(r.Context(), &entriesJson.Entries, query, queryIDs[0])
 		if err != nil {
 			log.Println(fmt.Sprintf("select error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		// レスポンスボディに書き込む
 		err = json.NewEncoder(w).Encode(&entriesJson)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -155,17 +166,21 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// idの数だけ置換文字を作成
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
 		log.Println(fmt.Sprintf("db.In error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	// Postgresの場合は置換文字を$1, $2, ...とする必要がある
 	query = db.Rebind(len(queryIDs), query)
+	// 複数件取得
 	err = h.svc.DB.SelectContext(r.Context(), &entriesJson.Entries, query, args...)
 	if err != nil {
 		log.Println(fmt.Sprintf("select error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	// レスポンスボディに書き込む
 	err = json.NewEncoder(w).Encode(&entriesJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -184,6 +199,7 @@ func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
 }
 
 func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// PUTメソッド以外は受け付けない
 	if r.Method != http.MethodPut {
 		return
 	}
@@ -200,6 +216,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
+	// リクエストボディを読み込む
 	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(fmt.Sprintf("read error: %v", err))
@@ -208,29 +225,33 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(jsonBytes, &entriesJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	if len(entriesJson.Entries) == 0 {
 		log.Println("json unexpected error: empty body")
-		http.Error(w, "json unexpected error: empty body", http.StatusBadRequest)
+		http.Error(w, "json unexpected error: empty body", http.StatusUnprocessableEntity)
 	}
+	// jsonバリデーション
 	err = entriesJson.Validate()
 	if err != nil {
 		log.Println(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	for _, entry := range entriesJson.Entries {
+		// jsonバリデーション
 		err = entry.Validate()
 		if err != nil {
 			log.Println(fmt.Sprintf("validation error: %v", err))
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		}
+		// 更新
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, entry)
 		if err != nil {
 			log.Println(fmt.Sprintf("update error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
+	// レスポンスボディに書き込む
 	err = json.NewEncoder(w).Encode(&entriesJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -249,6 +270,7 @@ func NewDeleteHandler(svc *service.IndexService) *DeleteHandler {
 }
 
 func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// DELETEメソッド以外は受け付けない
 	if r.Method != http.MethodDelete {
 		return
 	}
@@ -259,6 +281,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id IN (?)
 	`
+	// リクエストボディを読み込む
 	jsonBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(fmt.Sprintf("read error: %v", err))
@@ -269,13 +292,15 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Println(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	// jsonバリデーション
 	err = delIDs.Validate()
 	if err != nil {
 		log.Println(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	if len(delIDs.IDs) == 0 {
 		return
+	// 1件の場合はIN句を使わない
 	} else if len(delIDs.IDs) == 1 {
 		query = `
 			DELETE FROM
@@ -283,11 +308,13 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			WHERE
 				id = $1
 		`
+		// 1件削除
 		_, err = h.svc.DB.ExecContext(r.Context(), query, delIDs.IDs[0])
 		if err != nil {
 			log.Println(fmt.Sprintf("delete error: %v", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		// レスポンスボディに書き込む
 		err = json.NewEncoder(w).Encode(&delIDs)
 		if err != nil {
 			log.Println(fmt.Sprintf("json encode error: %v", err))
@@ -295,17 +322,20 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// idの数だけ置換文字を作成
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
 		log.Println(fmt.Sprintf("db.In error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	// Postgresの場合は置換文字を$1, $2, ...とする必要がある
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
 		log.Println(fmt.Sprintf("delete error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	// レスポンスボディに書き込む
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
 		log.Println(fmt.Sprintf("json encode error: %v", err))
