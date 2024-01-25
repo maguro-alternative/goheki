@@ -425,6 +425,32 @@ func TestReadEntryTagHandler(t *testing.T) {
 		r := w.Result()
 		assert.Equal(t, http.StatusInternalServerError, r.StatusCode)
 	})
+
+	t.Run("entry_tad2件取得(内1件は形式が正しくない)", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		// テストの実行
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=%d&id=aaa", f.EntryTags[0].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		// テストの実行
+		h.ServeHTTP(w, req)
+
+		// ロールバック
+		// tx.RollbackCtx(ctx)
+
+		// 応答の検証
+		r := w.Result()
+		assert.Equal(t, http.StatusInternalServerError, r.StatusCode)
+	})
 }
 
 func TestUpdateEntryHandler(t *testing.T) {

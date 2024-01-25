@@ -431,6 +431,26 @@ func TestReadEntryHandler(t *testing.T) {
 		res := w.Result()
 		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 	})
+
+	t.Run("entry2件取得(内1件は形式が正しくない)", func(t *testing.T) {
+		var indexService = service.NewIndexService(
+			tx,
+			cookie.Store,
+			env,
+		)
+		h := NewReadHandler(indexService)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/entry/read?id=aaa&id=%d", f.Entrys[0].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+
+		assert.NoError(t, err)
+
+		h.ServeHTTP(w, req)
+
+		res := w.Result()
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	})
 }
 
 func TestUpdateEntryHandler(t *testing.T) {
