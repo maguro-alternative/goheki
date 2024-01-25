@@ -341,6 +341,18 @@ func TestReadBEHHandler(t *testing.T) {
 		// tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
+
+	t.Run("bwh2件取得(内1件は形式が正しくない)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=aaa&entry_id=%d", f.BWHs[0].EntryID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateBEHHandler(t *testing.T) {
