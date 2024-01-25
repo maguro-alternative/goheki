@@ -313,6 +313,23 @@ func TestReadBEHHandler(t *testing.T) {
 		assert.Len(t, res.BWHs, 0)
 	})
 
+	t.Run("bwh2件取得(内1件は存在しない)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?entry_id=%d&entry_id=0", f.Entrys[0].ID), nil)
+		assert.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res BWHsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, bwhs[:1], res.BWHs)
+	})
+
 	t.Run("bwh1件取得(形式が正しくない)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
 		req := httptest.NewRequest(http.MethodGet, "/api/bwh/read?entry_id=aaa", nil)
