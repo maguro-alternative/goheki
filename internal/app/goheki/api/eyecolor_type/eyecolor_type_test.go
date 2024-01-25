@@ -32,12 +32,39 @@ func TestCreateEyeColorTypeHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
+
 	// テスト対象のハンドラを作成
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
 		env,
 	)
+
+	t.Run("eyecolor_type登録失敗", func(t *testing.T) {
+		// リクエストの作成
+		ids := IDs{
+			IDs: []int64{1, 2},
+		}
+		b, err := json.Marshal(ids)
+		assert.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/eyecolor_type/create", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewCreateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []EyeColorType
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM eyecolor_type")
+		assert.NoError(t, err)
+		assert.Len(t, actuals, 0)
+	})
+
 	t.Run("eyecolor_type登録", func(t *testing.T) {
 		// リクエストの作成
 		eyeColorTypesJson := EyeColorTypesJson{
@@ -66,28 +93,13 @@ func TestCreateEyeColorTypeHandler(t *testing.T) {
 		assert.NoError(t, err)
 		// レスポンスの検証
 		assert.Equal(t, eyeColorTypesJson, res)
-	})
 
-	t.Run("eyecolor_type登録失敗", func(t *testing.T) {
-		// リクエストの作成
-		ids := IDs{
-			IDs: []int64{1, 2},
-		}
-		b, err := json.Marshal(ids)
+		var actualEyeColorTypes []EyeColorType
+		err = tx.SelectContext(ctx, &actualEyeColorTypes, "SELECT * FROM eyecolor_type")
 		assert.NoError(t, err)
-
-		req := httptest.NewRequest(http.MethodPost, "/api/eyecolor_type/create", bytes.NewBuffer(b))
-		// レスポンスの作成
-		w := httptest.NewRecorder()
-		// テスト対象のハンドラを実行
-		h := NewCreateHandler(indexService)
-		h.ServeHTTP(w, req)
-		// レスポンスの検証
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, eyeColorTypesJson.EyeColorTypes[0].Color, actualEyeColorTypes[0].Color)
+		assert.Equal(t, eyeColorTypesJson.EyeColorTypes[1].Color, actualEyeColorTypes[1].Color)
 	})
-
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestReadEyeColorTypeHandler(t *testing.T) {
@@ -101,6 +113,8 @@ func TestReadEyeColorTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -177,8 +191,67 @@ func TestReadEyeColorTypeHandler(t *testing.T) {
 		assert.Equal(t, f.EyeColorTypes[1].ID, res.EyeColorTypes[1].ID)
 		assert.Equal(t, f.EyeColorTypes[1].Color, res.EyeColorTypes[1].Color)
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
+
+	t.Run("eyecolor_type1件取得(存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, "/api/eyecolor_type/read?id=0", nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res EyeColorTypesJson
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		assert.Len(t, res.EyeColorTypes, 0)
+	})
+
+	t.Run("eyecolor_type2件取得(内1件は存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor_type/read?id=%d&id=0", f.EyeColorTypes[0].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res EyeColorTypesJson
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		assert.Len(t, res.EyeColorTypes, 1)
+		assert.Equal(t, f.EyeColorTypes[0].ID, res.EyeColorTypes[0].ID)
+		assert.Equal(t, f.EyeColorTypes[0].Color, res.EyeColorTypes[0].Color)
+	})
+
+	t.Run("eyecolor_type1件取得(バリデーションエラー)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, "/api/eyecolor_type/read?id=invalid", nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("eyecolor_type2件取得(内1件は形式が正しくない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor_type/read?id=%d&id=invalid", f.EyeColorTypes[0].ID), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateEyeColorTypeHandler(t *testing.T) {
@@ -192,6 +265,8 @@ func TestUpdateEyeColorTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -208,6 +283,32 @@ func TestUpdateEyeColorTypeHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("eyecolor_type更新失敗", func(t *testing.T) {
+		// リクエストの作成
+		eyeColorTypesJson := EyeColorTypesJson{}
+		b, err := json.Marshal(eyeColorTypesJson)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/eyecolor_type/update", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+
+		// テスト対象のハンドラを実行
+		h := NewUpdateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actualEyeColorTypes []EyeColorType
+		err = tx.SelectContext(ctx, &actualEyeColorTypes, "SELECT * FROM eyecolor_type")
+		assert.NoError(t, err)
+
+		assert.Equal(t, f.EyeColorTypes[0].ID, actualEyeColorTypes[0].ID)
+		assert.Equal(t, f.EyeColorTypes[0].Color, actualEyeColorTypes[0].Color)
+		assert.Equal(t, f.EyeColorTypes[1].ID, actualEyeColorTypes[1].ID)
+		assert.Equal(t, f.EyeColorTypes[1].Color, actualEyeColorTypes[1].Color)
+	})
+
 	t.Run("eyecolor_type更新", func(t *testing.T) {
 		// リクエストの作成
 		eyeColorTypesJson := EyeColorTypesJson{
@@ -247,8 +348,6 @@ func TestUpdateEyeColorTypeHandler(t *testing.T) {
 		assert.Equal(t, eyeColorTypesJson.EyeColorTypes[1].ID, actualEyeColorTypes[1].ID)
 		assert.Equal(t, eyeColorTypesJson.EyeColorTypes[1].Color, actualEyeColorTypes[1].Color)
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteEyeColorTypeHandler(t *testing.T) {
@@ -262,6 +361,8 @@ func TestDeleteEyeColorTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -278,6 +379,33 @@ func TestDeleteEyeColorTypeHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("eyecolor_type削除失敗", func(t *testing.T) {
+		// リクエストの作成
+		ids := IDs{}
+		b, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/eyecolor_type/delete", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+
+		// テスト対象のハンドラを実行
+		h := NewDeleteHandler(indexService)
+		h.ServeHTTP(w, req)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actualEyeColorTypes []EyeColorType
+		err = tx.SelectContext(ctx, &actualEyeColorTypes, "SELECT * FROM eyecolor_type")
+		assert.NoError(t, err)
+
+		assert.Equal(t, f.EyeColorTypes[0].ID, actualEyeColorTypes[0].ID)
+		assert.Equal(t, f.EyeColorTypes[0].Color, actualEyeColorTypes[0].Color)
+		assert.Equal(t, f.EyeColorTypes[1].ID, actualEyeColorTypes[1].ID)
+		assert.Equal(t, f.EyeColorTypes[1].Color, actualEyeColorTypes[1].Color)
+	})
+
 	t.Run("eyecolor_type削除", func(t *testing.T) {
 		// リクエストの作成
 		delIDs := IDs{
@@ -300,6 +428,4 @@ func TestDeleteEyeColorTypeHandler(t *testing.T) {
 		// レスポンスの検証
 		assert.Equal(t, delIDs, res)
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
