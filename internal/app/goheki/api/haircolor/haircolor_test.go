@@ -33,6 +33,9 @@ func TestCreateHairColorHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// トランザクションのロールバック
+	defer tx.RollbackCtx(ctx)
+
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
@@ -132,9 +135,6 @@ func TestCreateHairColorHandler(t *testing.T) {
 		assert.Equal(t, f.HairColorTypes[0].ID, hairColors[0].ColorID)
 		assert.Equal(t, f.HairColorTypes[0].ID, hairColors[1].ColorID)
 	})
-
-	// トランザクションのロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestReadHairColorHandler(t *testing.T) {
@@ -148,6 +148,9 @@ func TestReadHairColorHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// トランザクションのロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -252,8 +255,75 @@ func TestReadHairColorHandler(t *testing.T) {
 		assert.Equal(t, f.HairColors[1].ColorID, res.HairColors[1].ColorID)
 	})
 
-	// ロールバック
-	tx.RollbackCtx(ctx)
+	t.Run("haircolor1件取得(存在しない)", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, "/api/haircolor/read?entry_id=0", nil)
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		var res HairColorsJson
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(res.HairColors))
+	})
+
+	t.Run("haircolor2件取得(内1件存在しない)", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/haircolor/read?entry_id=0&entry_id=%d", f.HairColors[0].EntryID), nil)
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		var res HairColorsJson
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 1, len(res.HairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, res.HairColors[0].ColorID)
+	})
+
+	t.Run("haircolor2件取得(内1件の形式が正しくない)", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/haircolor/read?entry_id=%d&entry_id=%s", f.HairColors[0].EntryID, "a"), nil)
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("haircolor2件取得(形式が正しくない)", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, "/api/haircolor/read?entry_id=a&entry_id=b", nil)
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+		// トランザクションのロールバック
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateHairColorHandler(t *testing.T) {
@@ -267,6 +337,9 @@ func TestUpdateHairColorHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// トランザクションのロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -322,6 +395,32 @@ func TestUpdateHairColorHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("haircolor更新失敗", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewUpdateHandler(indexService)
+		ids := IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}}
+		body, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/haircolor/update", bytes.NewBuffer(body))
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		// データベースの検証
+		var hairColors []HairColor
+		err = tx.SelectContext(ctx, &hairColors, "SELECT * FROM haircolor")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(hairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, hairColors[0].ColorID)
+		assert.Equal(t, f.HairColors[1].ColorID, hairColors[1].ColorID)
+	})
+
 	t.Run("haircolor更新", func(t *testing.T) {
 		// リクエストの準備
 		handler := NewUpdateHandler(indexService)
@@ -334,7 +433,7 @@ func TestUpdateHairColorHandler(t *testing.T) {
 		// ハンドラの実行
 		handler.ServeHTTP(w, req)
 		// トランザクションのロールバック
-		tx.RollbackCtx(ctx)
+		// tx.RollbackCtx(ctx)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		var res HairColorsJson
@@ -355,6 +454,9 @@ func TestDeleteHairColorHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// トランザクションのロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -397,6 +499,32 @@ func TestDeleteHairColorHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("haircolor削除失敗", func(t *testing.T) {
+		// リクエストの準備
+		handler := NewDeleteHandler(indexService)
+		ids := IDs{}
+		body, err := json.Marshal(ids)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/haircolor/delete", bytes.NewBuffer(body))
+
+		// レスポンスの準備
+		w := httptest.NewRecorder()
+		// ハンドラの実行
+		handler.ServeHTTP(w, req)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		// データベースの検証
+		var hairColors []HairColor
+		err = tx.SelectContext(ctx, &hairColors, "SELECT * FROM haircolor")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(hairColors))
+		assert.Equal(t, f.HairColors[0].ColorID, hairColors[0].ColorID)
+		assert.Equal(t, f.HairColors[1].ColorID, hairColors[1].ColorID)
+	})
+
 	t.Run("haircolor削除", func(t *testing.T) {
 		// リクエストの準備
 		handler := NewDeleteHandler(indexService)
@@ -414,7 +542,11 @@ func TestDeleteHairColorHandler(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&res)
 		assert.NoError(t, err)
 		assert.Equal(t, []int64{f.Entrys[0].ID, f.Entrys[1].ID}, res.IDs)
+
+		// データベースの検証
+		var hairColors []HairColor
+		err = tx.SelectContext(ctx, &hairColors, "SELECT * FROM haircolor")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(hairColors))
 	})
-	// トランザクションのロールバック
-	tx.RollbackCtx(ctx)
 }
