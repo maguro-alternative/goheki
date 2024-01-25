@@ -230,7 +230,7 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(jsonBytes, &bwhsJson)
 	if err != nil {
 		log.Println(fmt.Sprintf("json unmarshal error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	// jsonバリデーション
 	err = bwhsJson.Validate()
