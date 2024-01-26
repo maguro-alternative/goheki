@@ -22,6 +22,7 @@ func NewCreateHandler(svc *service.IndexService) *CreateHandler {
 }
 
 func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// POST以外は受け付けない
 	if r.Method != http.MethodPost {
 		return
 	}
@@ -39,17 +40,19 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// jsonバリデーション
 	err = hairColorTypesJson.Validate()
 	if err != nil {
 		log.Printf(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 	for _, hairColorType := range hairColorTypesJson.HairColorTypes {
+		// jsonのバリデーションを通過したデータをDBに登録
 		err = hairColorType.Validate()
 		if err != nil {
 			log.Printf(fmt.Sprintf("validation error: %v", err))
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 			return
 		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hairColorType)
@@ -59,6 +62,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	// レスポンスの作成
 	err = json.NewEncoder(w).Encode(&hairColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
@@ -78,6 +82,7 @@ func NewReadHandler(svc *service.IndexService) *ReadHandler {
 }
 
 func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// GET以外は受け付けない
 	if r.Method != http.MethodGet {
 		return
 	}
@@ -92,6 +97,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			id IN (?)
 	`
 	queryIDs, ok := r.URL.Query()["id"]
+	// idが指定されていない場合は全件取得
 	if !ok {
 		query = `
 			SELECT
@@ -106,6 +112,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		// レスポンスの作成
 		err = json.NewEncoder(w).Encode(&hairColorTypesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
@@ -129,6 +136,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		// レスポンスの作成
 		err = json.NewEncoder(w).Encode(&hairColorTypesJson)
 		if err != nil {
 			log.Printf(fmt.Sprintf("json encode error: %v", err))
@@ -137,17 +145,20 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// idの数だけ置換文字を作成
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		return
 	}
+	// Postgresの場合は置換文字を$1, $2, ...とする必要がある
 	query = db.Rebind(len(queryIDs), query)
 	err = h.svc.DB.SelectContext(r.Context(), &hairColorTypesJson.HairColorTypes, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		return
 	}
+	// レスポンスの作成
 	err = json.NewEncoder(w).Encode(&hairColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
@@ -166,6 +177,7 @@ func NewUpdateHandler(svc *service.IndexService) *UpdateHandler {
 }
 
 func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// PUT以外は受け付けない
 	if r.Method != http.MethodPut {
 		return
 	}
@@ -178,22 +190,32 @@ func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WHERE
 			id = :id
 	`
+	// jsonのデコード
 	err := json.NewDecoder(r.Body).Decode(&hairColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json decode error: %v body:%v", err, r.Body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// jsonバリデーション
+	err = hairColorTypesJson.Validate()
+	if err != nil {
+		log.Printf(fmt.Sprintf("validation error: %v", err))
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
 	for _, hairColorType := range hairColorTypesJson.HairColorTypes {
+		// jsonのバリデーションを通過したデータをDBに登録
 		err = hairColorType.Validate()
 		if err != nil {
 			log.Printf(fmt.Sprintf("validation error: %v", err))
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 			return
 		}
 		_, err = h.svc.DB.NamedExecContext(r.Context(), query, hairColorType)
 		if err != nil {
 			log.Printf(fmt.Sprintf("db error: %v", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -232,10 +254,11 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// jsonバリデーション
 	err = delIDs.Validate()
 	if err != nil {
 		log.Printf(fmt.Sprintf("validation error: %v", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 	if len(delIDs.IDs) == 0 {
@@ -255,12 +278,14 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// idの数だけ置換文字を作成
 	query, args, err := db.In(query, delIDs.IDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Postgresの場合は置換文字を$1, $2, ...とする必要がある
 	query = db.Rebind(len(delIDs.IDs), query)
 	_, err = h.svc.DB.ExecContext(r.Context(), query, args...)
 	if err != nil {
@@ -268,6 +293,7 @@ func (h *DeleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// レスポンスの作成
 	err = json.NewEncoder(w).Encode(&delIDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
