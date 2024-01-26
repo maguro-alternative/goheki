@@ -33,6 +33,9 @@ func TestCreateHairLengthHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
+
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
@@ -81,16 +84,34 @@ func TestCreateHairLengthHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
-	t.Run("hairlength登録", func(t *testing.T) {
+
+	t.Run("hairlength登録失敗", func(t *testing.T) {
 		h := NewCreateHandler(indexService)
-		body, err := json.Marshal(heirLengths)
+		b := HairLengthsJson{}
+		body, err := json.Marshal(&b)
 		assert.NoError(t, err)
-		req := httptest.NewRequest(http.MethodPost, "/api/hairlength", bytes.NewBuffer(body))
+		req := httptest.NewRequest(http.MethodPost, "/api/hairlength/create", bytes.NewBuffer(body))
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []HairLength
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM hairlength")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(actuals))
+	})
+
+	t.Run("hairlength登録", func(t *testing.T) {
+		h := NewCreateHandler(indexService)
+		body, err := json.Marshal(heirLengths)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/hairlength/create", bytes.NewBuffer(body))
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res HairLengthsJson
@@ -111,6 +132,9 @@ func TestReadHairLengthHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -212,8 +236,53 @@ func TestReadHairLengthHandler(t *testing.T) {
 		assert.Equal(t, heirLengthsJson, res)
 	})
 
-	// ロールバック
-	tx.RollbackCtx(ctx)
+	t.Run("hairlength1件取得(存在しない)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=0"), nil)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res HairLengthsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Len(t, res.HairLengths, 0)
+	})
+
+	t.Run("hairlength1件取得(不正なパラメータ)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=invalid"), nil)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var res HairLengthsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Len(t, res.HairLengths, 0)
+	})
+
+	t.Run("hairlength2件取得(内1件不正なパラメータ)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=%d&id=invalid", f.Entrys[0].ID), nil)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		// tx.RollbackCtx(ctx)
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res HairLengthsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, heirLengthsJson.HairLengths[0], res.HairLengths[0])
+	})
 }
 
 func TestUpdateHairLengthHandler(t *testing.T) {
@@ -227,6 +296,9 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -280,6 +352,26 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("hairlength更新失敗", func(t *testing.T) {
+		h := NewUpdateHandler(indexService)
+		b := HairLengthsJson{}
+		body, err := json.Marshal(&b)
+		assert.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPut, "/api/hairlength/update", bytes.NewBuffer(body))
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []HairLength
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM hairlength")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+	})
+
 	t.Run("hairlength更新", func(t *testing.T) {
 		h := NewUpdateHandler(indexService)
 		body, err := json.Marshal(updateHeirLengths)
@@ -289,13 +381,21 @@ func TestUpdateHairLengthHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res HairLengthsJson
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateHeirLengths, res)
+
+		var actuals []HairLength
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM hairlength")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+		assert.Equal(t, updateHeirLengths.HairLengths[0].EntryID, actuals[0].EntryID)
+		assert.Equal(t, updateHeirLengths.HairLengths[0].HairLengthTypeID, actuals[0].HairLengthTypeID)
+		assert.Equal(t, updateHeirLengths.HairLengths[1].EntryID, actuals[1].EntryID)
+		assert.Equal(t, updateHeirLengths.HairLengths[1].HairLengthTypeID, actuals[1].HairLengthTypeID)
 	})
 }
 
@@ -310,6 +410,9 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -353,6 +456,25 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("hairlength削除失敗", func(t *testing.T) {
+		h := NewDeleteHandler(indexService)
+		b := IDs{}
+		body, err := json.Marshal(&b)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/hairlength/delete", bytes.NewBuffer(body))
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []HairLength
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM hairlength")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+	})
+
 	t.Run("hairlength削除", func(t *testing.T) {
 		h := NewDeleteHandler(indexService)
 		body, err := json.Marshal(IDs{IDs: []int64{f.Entrys[0].ID, f.Entrys[1].ID}})
@@ -362,7 +484,6 @@ func TestDeleteHairLengthHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		tx.RollbackCtx(ctx)
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var res IDs
