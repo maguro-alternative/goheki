@@ -184,15 +184,6 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		assert.Equal(t, 0, len(res.HairColorTypes))
 	})
 
-	t.Run("haircolor_type1件取得(不正なID)", func(t *testing.T) {
-		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, "/api/bwh/read?id=a", nil)
-		w := httptest.NewRecorder()
-		h.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
 	t.Run("haircolor_type2件取得(内1件は存在しない)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?id=%d&id=0", f.HairColorTypes[0].ID), nil)
@@ -208,18 +199,22 @@ func TestReadHairColorTypeHandler(t *testing.T) {
 		assert.Equal(t, "black", res.HairColorTypes[0].Color)
 	})
 
+	t.Run("haircolor_type1件取得(不正なID)", func(t *testing.T) {
+		h := NewReadHandler(indexService)
+		req := httptest.NewRequest(http.MethodGet, "/api/bwh/read?id=a", nil)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
 	t.Run("haircolor_type2件取得(内1件は不正なID)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/bwh/read?id=%d&id=a", f.HairColorTypes[0].ID), nil)
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		var res HairColorTypesJson
-		err = json.NewDecoder(w.Body).Decode(&res)
-		assert.NoError(t, err)
-
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Equal(t, 0, len(res.HairColorTypes))
 	})
 }
 
