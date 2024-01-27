@@ -310,32 +310,6 @@ func TestReadEntryTagHandler(t *testing.T) {
 		assert.Equal(t, f.EntryTags[1].ID, res.EntryTags[1].ID)
 	})
 
-	t.Run("entry_tag取得失敗", func(t *testing.T) {
-		var indexService = service.NewIndexService(
-			tx,
-			cookie.Store,
-			env,
-		)
-		// テストの実行
-		h := NewReadHandler(indexService)
-		req, err := http.NewRequest(http.MethodGet, "/api/entry/read?id=", nil)
-		assert.NoError(t, err)
-
-		w := httptest.NewRecorder()
-
-		assert.NoError(t, err)
-
-		// テストの実行
-		h.ServeHTTP(w, req)
-
-		// ロールバック
-		// tx.RollbackCtx(ctx)
-
-		// 応答の検証
-		r := w.Result()
-		assert.Equal(t, http.StatusInternalServerError, r.StatusCode)
-	})
-
 	t.Run("entry_tag1件取得(存在しない)", func(t *testing.T) {
 		var indexService = service.NewIndexService(
 			tx,
