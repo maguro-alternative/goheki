@@ -149,6 +149,7 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query, args, err := db.In(query, queryIDs)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// Postgresの場合は置換文字を$1, $2, ...とする必要がある
@@ -156,12 +157,14 @@ func (h *ReadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = h.svc.DB.SelectContext(r.Context(), &hairColorTypesJson.HairColorTypes, query, args...)
 	if err != nil {
 		log.Printf(fmt.Sprintf("db error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// レスポンスの作成
 	err = json.NewEncoder(w).Encode(&hairColorTypesJson)
 	if err != nil {
 		log.Printf(fmt.Sprintf("json encode error: %v", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
