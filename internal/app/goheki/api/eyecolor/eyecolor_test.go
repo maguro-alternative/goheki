@@ -231,18 +231,6 @@ func TestReadEyeColorHandler(t *testing.T) {
 		assert.Equal(t, f.EyeColors[1].ColorID, res.EyeColors[1].ColorID)
 	})
 
-	t.Run("eyecolor1件取得失敗", func(t *testing.T) {
-		// リクエストを作成
-		req, err := http.NewRequest(http.MethodGet, "/api/eyecolor/read?entry_id=", nil)
-		assert.NoError(t, err)
-		// レスポンスを作成
-		rr := httptest.NewRecorder()
-		handler := NewReadHandler(indexService)
-		handler.ServeHTTP(rr, req)
-		// レスポンスの検証
-		assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	})
-
 	t.Run("eyecolor2件取得(内1件は存在しない)", func(t *testing.T) {
 		// リクエストを作成
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/eyecolor/read?entry_id=%d&entry_id=0", f.Entrys[0].ID), nil)
@@ -261,6 +249,18 @@ func TestReadEyeColorHandler(t *testing.T) {
 		assert.Len(t, res.EyeColors, 1)
 		assert.Equal(t, f.EyeColors[0].EntryID, res.EyeColors[0].EntryID)
 		assert.Equal(t, f.EyeColors[0].ColorID, res.EyeColors[0].ColorID)
+	})
+
+	t.Run("eyecolor1件取得失敗", func(t *testing.T) {
+		// リクエストを作成
+		req, err := http.NewRequest(http.MethodGet, "/api/eyecolor/read?entry_id=", nil)
+		assert.NoError(t, err)
+		// レスポンスを作成
+		rr := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(rr, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	})
 
 	t.Run("eyecolor2件取得(内1件は形式が正しくない)", func(t *testing.T) {
