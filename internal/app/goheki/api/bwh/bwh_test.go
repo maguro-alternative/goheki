@@ -136,7 +136,12 @@ func TestCreateBEHHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM bwh")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, count)
 	})
 
 	t.Run("bwh登録", func(t *testing.T) {
