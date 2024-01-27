@@ -55,6 +55,12 @@ func TestCreateHairColorTypeHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		// データベースの検証
+		var actuals []HairColorType
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM haircolor_type")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(actuals))
 	})
 
 	t.Run("haircolor_type登録", func(t *testing.T) {
@@ -77,6 +83,22 @@ func TestCreateHairColorTypeHandler(t *testing.T) {
 		h.ServeHTTP(w, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
+
+		var res HairColorTypesJson
+		err = json.NewDecoder(w.Body).Decode(&res)
+		assert.NoError(t, err)
+
+		assert.Equal(t, 2, len(res.HairColorTypes))
+		assert.Equal(t, "black", res.HairColorTypes[0].Color)
+		assert.Equal(t, "blue", res.HairColorTypes[1].Color)
+
+		// データベースの検証
+		var actuals []HairColorType
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM haircolor_type")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+		assert.Equal(t, "black", actuals[0].Color)
+		assert.Equal(t, "blue", actuals[1].Color)
 	})
 }
 
