@@ -85,6 +85,11 @@ func TestCreateEyeColorHandler(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		// レスポンスの検証
 		assert.Equal(t, http.StatusUnprocessableEntity, rr.Code)
+
+		var actual []EyeColor
+		err = tx.SelectContext(ctx, &actual, "SELECT * FROM eyecolor")
+		assert.NoError(t, err)
+		assert.Len(t, actual, 0)
 	})
 
 	t.Run("eyecolor作成", func(t *testing.T) {
