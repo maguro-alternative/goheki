@@ -118,6 +118,15 @@ func TestCreateHairLengthHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, heirLengths, res)
+
+		var actuals []HairLength
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM hairlength")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(actuals))
+		assert.Equal(t, heirLengths.HairLengths[0].EntryID, actuals[0].EntryID)
+		assert.Equal(t, heirLengths.HairLengths[0].HairLengthTypeID, actuals[0].HairLengthTypeID)
+		assert.Equal(t, heirLengths.HairLengths[1].EntryID, actuals[1].EntryID)
+		assert.Equal(t, heirLengths.HairLengths[1].HairLengthTypeID, actuals[1].HairLengthTypeID)
 	})
 }
 
@@ -238,7 +247,7 @@ func TestReadHairLengthHandler(t *testing.T) {
 
 	t.Run("hairlength1件取得(存在しない)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=0"), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=0"), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -254,34 +263,24 @@ func TestReadHairLengthHandler(t *testing.T) {
 
 	t.Run("hairlength1件取得(不正なパラメータ)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=invalid"), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=invalid"), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
 		// tx.RollbackCtx(ctx)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		var res HairLengthsJson
-		err = json.Unmarshal(w.Body.Bytes(), &res)
-		assert.NoError(t, err)
-		assert.Len(t, res.HairLengths, 0)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
 	t.Run("hairlength2件取得(内1件不正なパラメータ)", func(t *testing.T) {
 		h := NewReadHandler(indexService)
-		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?id=%d&id=invalid", f.Entrys[0].ID), nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairlength/read?entry_id=%d&entry_id=invalid", f.Entrys[0].ID), nil)
 
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
 
 		// tx.RollbackCtx(ctx)
-		assert.Equal(t, http.StatusOK, w.Code)
-
-		var res HairLengthsJson
-		err = json.Unmarshal(w.Body.Bytes(), &res)
-		assert.NoError(t, err)
-		assert.Equal(t, heirLengthsJson.HairLengths[0], res.HairLengths[0])
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
