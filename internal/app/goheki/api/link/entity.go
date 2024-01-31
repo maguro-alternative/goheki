@@ -5,8 +5,8 @@ import (
 )
 
 type Link struct {
-	ID       int64 `db:"id"`
-	EntryID  int64 `db:"entry_id"`
+	ID       int64  `db:"id"`
+	EntryID  int64  `db:"entry_id"`
 	Type     string `db:"type"`
 	URL      string `db:"url"`
 	Nsfw     bool   `db:"nsfw"`
@@ -18,8 +18,8 @@ func (l *Link) Validate() error {
 		validation.Field(&l.EntryID, validation.Required),
 		validation.Field(&l.Type, validation.Required),
 		validation.Field(&l.URL, validation.Required),
-		validation.Field(&l.Nsfw, validation.Required),
-		validation.Field(&l.Darkness, validation.Required),
+		validation.Field(&l.Nsfw, validation.In(false, true)),
+		validation.Field(&l.Darkness, validation.In(false, true)),
 	)
 }
 
