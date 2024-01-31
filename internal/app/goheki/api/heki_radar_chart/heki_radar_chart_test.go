@@ -114,6 +114,9 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
+
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
@@ -219,8 +222,67 @@ func TestReadHekiRadarChartHandler(t *testing.T) {
 		assert.Equal(t, charts, res.HekiRadarCharts)
 	})
 
-	// ロールバック
-	tx.RollbackCtx(ctx)
+	t.Run("heki_rader_chart1件取得(存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d", 0), nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスの検証
+		var res HekiRadarChartsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Len(t, res.HekiRadarCharts, 0)
+	})
+
+	t.Run("heki_rader_chart2件取得(内1件は存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d&entry_id=%d", f.Entrys[0].ID, 0), nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+		// レスポンスの検証
+		var res HekiRadarChartsJson
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		assert.NoError(t, err)
+		assert.Equal(t, charts[0], res.HekiRadarCharts[0])
+	})
+
+	t.Run("heki_rader_chart1件取得(形式が正しくない)", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, "/api/heki_radar_chart/read?entry_id=aaa", nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("heki_rader_chart2件取得(内1件形式が正しくない)", func(t *testing.T) {
+		// リクエストの作成
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/heki_radar_chart/read?entry_id=%d&entry_id=bbb", f.HekiRadarCharts[0].EntryID), nil)
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewReadHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// tx.RollbackCtx(ctx)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateHekiRadarChartHandler(t *testing.T) {
@@ -235,6 +297,9 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -287,6 +352,31 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("heki_rader_chart更新失敗", func(t *testing.T) {
+		// リクエストの作成
+		b, err := json.Marshal(HekiRadarChartsJson{[]HekiRadarChart{}})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPut, "/api/heki_radar_chart/update", bytes.NewBuffer(b))
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewUpdateHandler(indexService)
+		handler.ServeHTTP(w, req)
+
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []HekiRadarChart
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM heki_radar_chart")
+		assert.NoError(t, err)
+		assert.Len(t, actuals, 2)
+		assert.Equal(t, f.HekiRadarCharts[0].AI, actuals[0].AI)
+		assert.Equal(t, f.HekiRadarCharts[0].NU, actuals[0].NU)
+		assert.Equal(t, f.HekiRadarCharts[1].AI, actuals[1].AI)
+		assert.Equal(t, f.HekiRadarCharts[1].NU, actuals[1].NU)
+	})
+
 	t.Run("heki_rader_chart更新", func(t *testing.T) {
 		// リクエストの作成
 		b, err := json.Marshal(updateCharts)
@@ -297,7 +387,7 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := NewUpdateHandler(indexService)
 		handler.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 		// レスポンスの検証
@@ -305,6 +395,15 @@ func TestUpdateHekiRadarChartHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &res)
 		assert.NoError(t, err)
 		assert.Equal(t, updateCharts, res)
+
+		var actuals []HekiRadarChart
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM heki_radar_chart")
+		assert.NoError(t, err)
+		assert.Len(t, actuals, 2)
+		assert.Equal(t, updateCharts.HekiRadarCharts[0].AI, actuals[0].AI)
+		assert.Equal(t, updateCharts.HekiRadarCharts[0].NU, actuals[0].NU)
+		assert.Equal(t, updateCharts.HekiRadarCharts[1].AI, actuals[1].AI)
+		assert.Equal(t, updateCharts.HekiRadarCharts[1].NU, actuals[1].NU)
 	})
 }
 
@@ -320,6 +419,9 @@ func TestDeleteHekiRadarChartHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 
 	fixedTime := time.Date(2023, time.December, 27, 10, 55, 22, 0, time.UTC)
 	// データベースの準備
@@ -361,6 +463,26 @@ func TestDeleteHekiRadarChartHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("heki_rader_chart削除失敗", func(t *testing.T) {
+		// リクエストの作成
+		b, err := json.Marshal(deleteIDs)
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodDelete, "/api/heki_radar_chart/delete", bytes.NewBuffer(b))
+		assert.NoError(t, err)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		handler := NewDeleteHandler(indexService)
+		handler.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var actuals []HekiRadarChart
+		err = tx.SelectContext(ctx, &actuals, "SELECT * FROM heki_radar_chart")
+		assert.NoError(t, err)
+		assert.Len(t, actuals, 2)
+	})
+
 	t.Run("heki_rader_chart削除", func(t *testing.T) {
 		deleteIDs.IDs = append(deleteIDs.IDs, f.Entrys[0].ID)
 		deleteIDs.IDs = append(deleteIDs.IDs, f.Entrys[1].ID)
@@ -373,7 +495,7 @@ func TestDeleteHekiRadarChartHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := NewDeleteHandler(indexService)
 		handler.ServeHTTP(w, req)
-		tx.RollbackCtx(ctx)
+
 		// レスポンスの検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
