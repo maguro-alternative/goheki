@@ -32,12 +32,36 @@ func TestCreateHairStyleTypeHandler(t *testing.T) {
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
 
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
+
 	// テスト対象のハンドラを作成
 	var indexService = service.NewIndexService(
 		tx,
 		cookie.Store,
 		env,
 	)
+
+	t.Run("hairstyle_type登録失敗", func(t *testing.T) {
+		// リクエストの作成
+		hairStyleType := HairStyleTypesJson{[]HairStyleType{}}
+		b, err := json.Marshal(hairStyleType)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/api/hairstyle_type/create", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewCreateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM hairstyle_type")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, count)
+	})
+
 	t.Run("hairstyle_type登録", func(t *testing.T) {
 		// リクエストの作成
 		hairStyleType := HairStyleTypesJson{[]HairStyleType{
@@ -66,8 +90,6 @@ func TestCreateHairStyleTypeHandler(t *testing.T) {
 		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
 		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestReadHairStyleTypeHandler(t *testing.T) {
@@ -81,6 +103,8 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -154,8 +178,64 @@ func TestReadHairStyleTypeHandler(t *testing.T) {
 		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
 
-	// ロールバック
-	tx.RollbackCtx(ctx)
+	t.Run("hairstyle_type_type1件取得(存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d", 0), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var hairStyleTypesJson HairStyleTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(hairStyleTypesJson.HairStyleTypes))
+	})
+
+	t.Run("hairstyle_type2件取得(内1件は存在しない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d&id=%d", f.HairStyleTypes[0].ID, 0), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var hairStyleTypesJson HairStyleTypesJson
+		err := json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(hairStyleTypesJson.HairStyleTypes))
+		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+	})
+
+	t.Run("hairstyle_type2件取得(内1件は形式が正しくない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%d&id=%s", f.HairStyleTypes[0].ID, "a"), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("hairstyle_type1件取得(形式が正しくない)", func(t *testing.T) {
+		// リクエストの作成
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/hairstyle_type/read?id=%s", "a"), nil)
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewReadHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
 
 func TestUpdateHairStyleTypeHandler(t *testing.T) {
@@ -169,6 +249,8 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -186,12 +268,35 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("hairstyle_type更新失敗", func(t *testing.T) {
+		// リクエストの作成
+		updateHairStyleType := HairStyleTypesJson{[]HairStyleType{}}
+		b, err := json.Marshal(updateHairStyleType)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/api/hairstyle_type/update", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewUpdateHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var hairStyleType []HairStyleType
+		err = tx.SelectContext(ctx, &hairStyleType, "SELECT * FROM hairstyle_type")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(hairStyleType))
+		assert.Equal(t, "short", hairStyleType[0].Style)
+		assert.Equal(t, "long", hairStyleType[1].Style)
+	})
+
 	t.Run("hairstyle_type更新", func(t *testing.T) {
 		// リクエストの作成
 		updateHairStyleType := HairStyleTypesJson{[]HairStyleType{
 			{
 				ID:    f.HairStyleTypes[0].ID,
-				Style: "short",
+				Style: "medium",
 			},
 			{
 				ID:    f.HairStyleTypes[1].ID,
@@ -213,11 +318,9 @@ func TestUpdateHairStyleTypeHandler(t *testing.T) {
 		err = json.Unmarshal(w.Body.Bytes(), &hairStyleTypesJson)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(hairStyleTypesJson.HairStyleTypes))
-		assert.Equal(t, "short", hairStyleTypesJson.HairStyleTypes[0].Style)
+		assert.Equal(t, "medium", hairStyleTypesJson.HairStyleTypes[0].Style)
 		assert.Equal(t, "long", hairStyleTypesJson.HairStyleTypes[1].Style)
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
 
 func TestDeleteHairStyleTypeHandler(t *testing.T) {
@@ -231,6 +334,8 @@ func TestDeleteHairStyleTypeHandler(t *testing.T) {
 	// トランザクションの開始
 	tx, err := indexDB.BeginTxx(ctx, nil)
 	assert.NoError(t, err)
+	// ロールバック
+	defer tx.RollbackCtx(ctx)
 	// データベースの準備
 	f := &fixtures.Fixture{DBv1: tx}
 	f.Build(t,
@@ -248,6 +353,29 @@ func TestDeleteHairStyleTypeHandler(t *testing.T) {
 		cookie.Store,
 		env,
 	)
+
+	t.Run("hairstyle_type削除失敗", func(t *testing.T) {
+		// リクエストの作成
+		delIDs := IDs{
+			IDs: []int64{},
+		}
+		b, err := json.Marshal(delIDs)
+		assert.NoError(t, err)
+		req := httptest.NewRequest(http.MethodDelete, "/api/hairstyle_type/delete", bytes.NewBuffer(b))
+		// レスポンスの作成
+		w := httptest.NewRecorder()
+		// テスト対象のハンドラを実行
+		h := NewDeleteHandler(indexService)
+		h.ServeHTTP(w, req)
+		// レスポンスの検証
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+
+		var count int
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM hairstyle_type")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, count)
+	})
+
 	t.Run("hairstyle_type削除", func(t *testing.T) {
 		// リクエストの作成
 		delIDs := IDs{
@@ -271,6 +399,4 @@ func TestDeleteHairStyleTypeHandler(t *testing.T) {
 		assert.Equal(t, f.HairStyleTypes[0].ID, res.IDs[0])
 		assert.Equal(t, f.HairStyleTypes[1].ID, res.IDs[1])
 	})
-	// ロールバック
-	tx.RollbackCtx(ctx)
 }
