@@ -112,6 +112,7 @@ func TestCreateEntryHandler(t *testing.T) {
 		// テストの実行
 		h := NewCreateHandler(indexService)
 		eJson, err := json.Marshal(&entriesJson)
+		assert.NoError(t, err)
 		req, err := http.NewRequest(http.MethodPost, "/api/entry/create", bytes.NewBuffer(eJson))
 		assert.NoError(t, err)
 
@@ -126,6 +127,7 @@ func TestCreateEntryHandler(t *testing.T) {
 
 		var res EntriesJson
 		var actuals []Entry
+		var count int
 		err = json.NewDecoder(r.Body).Decode(&res)
 		assert.NoError(t, err)
 
@@ -141,6 +143,10 @@ func TestCreateEntryHandler(t *testing.T) {
 		assert.Equal(t, entriesJson.Entries[1].Name, actuals[1].Name)
 		assert.Equal(t, entriesJson.Entries[1].Image, actuals[1].Image)
 		assert.Equal(t, entriesJson.Entries[1].Content, actuals[1].Content)
+
+		err = tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM entry")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, count)
 	})
 }
 
