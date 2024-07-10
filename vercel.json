@@ -3,5 +3,34 @@
         "env": {
             "GO_BUILD_FLAGS": "-ldflags '-s -w'"
         }
-    }
+    },
+    "rewrites": [
+        {
+            "source": "/internal/app/goheki/api/bwh",
+            "destination": "/api/bwh"
+        },
+        {
+            "source": "/internal/app/goheki/api/entry",
+            "destination": "/api/entry"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/api/(.*)",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "CORSを許可するURLを載せる"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "Content-Type, Authorization"
+                }
+            ]
+        }
+    ]
 }
