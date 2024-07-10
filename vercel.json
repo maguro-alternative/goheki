@@ -1,6 +1,5 @@
 {
     "builds": [
-        {"src": "/cmd/goheki/*.go", "use": "@vercel/go" },
         {"src": "/internal/app/goheki/api/bwh/*.go", "use": "@vercel/go" },
         {"src": "/internal/app/goheki/api/entry/*.go", "use": "@vercel/go" },
         {"src": "/internal/app/goheki/api/entry_tag/*.go", "use": "@vercel/go" },
@@ -17,7 +16,14 @@
         {"src": "/internal/app/goheki/api/personality/*.go", "use": "@vercel/go" },
         {"src": "/internal/app/goheki/api/personality_type/*.go", "use": "@vercel/go" },
         {"src": "/internal/app/goheki/api/source/*.go", "use": "@vercel/go" },
-        {"src": "/internal/app/goheki/api/tag/*.go", "use": "@vercel/go" }
+        {"src": "/internal/app/goheki/api/tag/*.go", "use": "@vercel/go" },
+        {"src": "/internal/app/goheki/article/*.go", "use": "@vercel/go" },
+        {"src": "/internal/app/goheki/model/*.go", "use": "@vercel/go" },
+        {"src": "/internal/app/goheki/model/fixtures/*.go", "use": "@vercel/go" },
+        {"src": "/internal/app/goheki/service/*.go", "use": "@vercel/go" },
+        {"src": "/pkg/db/*.go", "use": "@vercel/go" },
+        {"src": "/pkg/cookie/*.go", "use": "@vercel/go" },
+        {"src": "/cmd/goheki/*.go", "use": "@vercel/go" }
     ],
     "rewrites": [
         {
